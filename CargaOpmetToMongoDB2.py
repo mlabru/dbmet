@@ -51,7 +51,7 @@ DLST_PARAM = ["iepv", "ptu", "wind"]
 DS_URL_INS = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}"
 DS_URL_OBS = DS_SITE + "bdc/search{}/observationdate?icaocodes={}&begindate={}&enddate={}"
 
-DS_DB_ADDR = "172.18.30.164"
+DS_DB_ADDR = "172.18.30.30"
 DI_DB_PORT = 27017
 
 # < module data >----------------------------------------------------------------------------------
