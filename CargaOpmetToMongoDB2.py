@@ -63,7 +63,7 @@ M_LOG.setLevel(DI_LOG_LEVEL)
 def arg_parse():
     """
     parse command line arguments
-    arguments parse: <empresa> <inspection number> <status> <mensagem>
+    arguments parse: <initial date> <final date> <ICAO code> <data type>
 
     :returns: arguments
     """

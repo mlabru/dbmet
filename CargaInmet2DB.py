@@ -32,7 +32,7 @@ DF_FT2M = 0.3048
 DF_MS2KT = 1.943844492
 
 # DB connection
-DS_HOST = "172.18.30.30"
+DS_HOST = "172.18.30.21"
 DS_USER = "dwclimatologia"
 DS_PASS = "dwclimatologia"
 DS_DB = "dw_climatologia"
