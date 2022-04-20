@@ -18,6 +18,16 @@ import stsc_defs as df
 import stsc_send_bdc as sb
 import stsc_data_redemet as dr
 
+import utl_dates as dt
+ 
+# < defines >----------------------------------------------------------------------------------
+
+# time range
+DI_DELTA_TIME = 1
+
+# input date format
+DS_DATE_FORMAT = "%Y-%m-%dT%H"
+
 # < logging >----------------------------------------------------------------------------------
 
 # logger
@@ -46,114 +56,42 @@ def arg_parse():
     return l_parser.parse_args()
 
 # ----------------------------------------------------------------------------------------------
-def get_date_range(f_args):
-    """
-    get initial and final dates
-
-    :param f_args: received arguments
-
-    :returns: initial date and delta in hours
-    """
-    # delta
-    li_delta = 1
-
-    # no date at all ?
-    if ("x" == f_args.dini) and ("x" == f_args.dfnl):
-        # datetime object containing current date and time, but 3 hours ahead (GMT)
-        ldt_ini = datetime.datetime.now() + datetime.timedelta(hours=df.DI_DIFF_GMT)
-        # build initial date
-        ldt_ini = ldt_ini
-
-    # just initial date ?
-    elif ("x" != f_args.dini) and ("x" == f_args.dfnl):
-        # parse initial date
-        ldt_ini = parse_date(f_args.dini)
-
-        # datetime object containing current date and time, but 3 hours ahead (GMT)
-        ldt_fnl = datetime.datetime.now() + datetime.timedelta(hours=df.DI_DIFF_GMT)
-        # build initial date
-        ldt_fnl = ldt_fnl.replace(minute=0)
-
-        # calculate difference in hours
-        li_delta = ldt_fnl - ldt_ini
-        li_delta = int(li_delta.total_seconds() / 3600)
-
-    # just final date ?
-    elif ("x" == f_args.dini) and ("x" != f_args.dfnl):
-        # parse final date
-        ldt_fnl = parse_date(f_args.dfnl)
-
-        # delta
-        ldt_ini = ldt_fnl - datetime.timedelta(hours=1)
-
-    # so, both dates
-    else:
-        # parse initial date
-        ldt_ini = parse_date(f_args.dini)
-
-        # parse final date
-        ldt_fnl = parse_date(f_args.dfnl)
-
-        # calculate difference
-        li_delta = ldt_fnl - ldt_ini
-        li_delta = int(li_delta.total_seconds() / 3600)
-
-    # return initial date and delta in hours
-    return ldt_ini.replace(minute=0, second=0, microsecond=0), li_delta
-
-# ---------------------------------------------------------------------------------------------
-def parse_date(fs_data):
-    """
-    parse date
-    
-    :param fs_data: date to be parsed
-
-    :returns: date in datetime format
-    """
-    try:
-        # parse data
-        ldt_date = datetime.datetime.strptime(fs_data, "%Y-%m-%dT%H")
-        # build initial date
-        ldt_date = ldt_date.replace(minute=0)
-
-    # em caso de erro,...
-    except Exception as l_err:
-        # logger
-        M_LOG.error("Date format error: %s. Aborting.", l_err)
-
-        # abort
-        sys.exit(-1)
-
-    # return date in datetime format
-    return ldt_date
-
-# ----------------------------------------------------------------------------------------------
-def trata_stsc(ldt_ini, l_bdc):
+def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
     """
     trata stsc
+
+    :param fdt_ini (datetime): data de início
+    :param f_bdc: conexão com o banco de dados
     """
     # logger
     M_LOG.info(">> trata_stsc")
     
     # format full date
-    ls_date = ldt_ini.strftime("%Y%m%d%H")
+    ls_date: str = fdt_ini.strftime("%Y%m%d%H")
 
     # show info
-    print(f"Processando data: {ls_date}.")
+    print(f"Processing date: {ls_date}.")
 
     # get STSC data
-    ldct_stsc = dr.redemet_get_stsc(ls_date)
+    ldct_stsc: dict = dr.redemet_get_stsc(ls_date)
 
     # lista de horas
-    llst_anima = ldct_stsc["anima"]
+    llst_anima: list = ldct_stsc["anima"]
     # lista de lat/lng
-    llst_stsc = ldct_stsc["stsc"]
+    llst_stsc: list = ldct_stsc["stsc"]
 
     # para todas as horas...
     for li_ndx, ls_hora in enumerate(llst_anima):
+        # minutos e segundos da hora
+        li_min = int(ls_hora[0:2])
+        li_seg = int(ls_hora[3:])
+        # ajusta minutos e segundos na data
+        fdt_ini = fdt_ini.replace(minute=li_min, second=li_seg)        
+
         # pata todos os lat/lng...
         for ldct_ll in llst_stsc[li_ndx]:
-            print("ls_hora:", ls_hora, " / ", "ldct_ll:", str(ldct_ll))
+            # grava registro no banco
+            sb.bdc_save_stsc(fdt_ini, ldct_ll["la"], ldct_ll["lo"], f_bdc)
     
 # ----------------------------------------------------------------------------------------------
 def main():
@@ -164,16 +102,14 @@ def main():
     l_args = arg_parse()
 
     # connect BDC
-    l_bdc = None  # sb.bdc_connect()
-    # assert l_bdc
+    l_bdc = sb.bdc_connect()
+    assert l_bdc
     
     # time delta
-    ldt_1hour = datetime.timedelta(hours=1)
+    ldt_1hour = datetime.timedelta(hours=DI_DELTA_TIME)
     
     # date range
-    ldt_ini, li_delta = get_date_range(l_args)
-    M_LOG.debug("ldt_ini: %s", str(ldt_ini))
-    M_LOG.debug("li_delta: %s", str(li_delta))
+    ldt_ini, li_delta = dt.get_date_range(l_args, DI_DELTA_TIME, DS_DATE_FORMAT)
     
     # for all dates...
     for li_i in range(1):  #li_delta):
@@ -184,7 +120,7 @@ def main():
         ldt_ini += ldt_1hour
 
     # close BDC
-    # l_bdc.close()
+    l_bdc.close()
 
 # ----------------------------------------------------------------------------------------------
 # this is the bootstrap process
@@ -194,7 +130,7 @@ if "__main__" == __name__:
     logging.basicConfig(level=df.DI_LOG_LEVEL)
 
     # disable logging
-    # logging.disable(sys.maxint)
+    # logging.disable(sys.maxsize)
 
     # run application
     sys.exit(main())

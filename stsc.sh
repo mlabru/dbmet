@@ -3,8 +3,8 @@
 # language
 # export LANGUAGE=pt_BR
 
-# cleo directory
-CLEO=~/clsim/cleo
+# dbmet directory
+DBMET=~/dbmet
 
 # nome do computador
 HOST=`hostname`
@@ -13,47 +13,24 @@ HOST=`hostname`
 TDATE=`date '+%Y-%m-%d_%H-%M-%S'`
 
 # home directory exists ?
-if [ -d ${CLEO} ]; then
+if [ -d ${DBMET} ]; then
     # set home dir
-    cd ${CLEO}
+    cd ${DBMET}
 fi
 
-# rabbitMQ container not loaded ?
-if ! [ "$( docker container inspect -f '{{.State.Running}}' rabbitmq )" == "true" ]; then
-    # upload rabbitmq
-    docker-compose up -d &
-    # wait 3s
-    sleep 3
-fi
+# ckeck if another instance of loader is running
+DI_PID_LOADER=`ps ax | grep -w python3 | grep -w carga_stsc.py | awk '{ print $1 }'`
 
-# ckeck if another instance of worker is running
-DI_PID_WORKER=`ps ax | grep -w python3 | grep -w worker.py | awk '{ print $1 }'`
-
-if [ ! -z "$DI_PID_WORKER" ]; then
+if [ ! -z "$DI_PID_LOADER" ]; then
     # log warning
-    echo "[`date`]: process worker is already running. Restarting..."
+    echo "[`date`]: process loader is already running. Restarting..."
     # kill process
-    kill -9 $DI_PID_WORKER
+    kill -9 $DI_PID_LOADER
     # wait 3s
     sleep 3
 fi
 
-# executa o worker (message queue consumer)
-python3 cleo/worker.py > logs/worker.$HOST.$TDATE.log 2>&1 &
-
-# ckeck if another instance os cleo is running
-DI_PID_CLEO=`ps ax | grep -w streamlit | grep -w cleo.py | awk '{ print $1 }'`
-
-if [ ! -z "$DI_PID_CLEO" ]; then
-    # log warning
-    echo "[`date`]: process cleo is already running. Restarting..."
-    # kill process
-    kill -9 $DI_PID_CLEO
-    # wait 3s
-    sleep 3
-fi
-
-# executa a aplicação (-OO)
-streamlit run cleo/cleo.py > logs/cleo.$HOST.$TDATE.log 2>&1 &
+# executa o loader
+python3 stsc/carga_stsc.py $@ > logs/carga_stsc.$HOST.$TDATE.log 2>&1 &
 
 # < the end >----------------------------------------------------------------------------------

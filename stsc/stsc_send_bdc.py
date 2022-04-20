@@ -7,6 +7,7 @@ stsc_send_bdc
 # < imports >----------------------------------------------------------------------------------
 
 # python library
+import datetime
 import logging
 import os
 
@@ -41,6 +42,9 @@ def bdc_connect(fs_user=DS_USER, fs_pass=DS_PASS, fs_host=DS_HOST, fs_db=DS_DB):
     """
     connect to BDC
     """
+    # logger
+    M_LOG.info(">> bdc_connect")
+
     # create connection
     l_bdc = psycopg2.connect(host=fs_host, database=fs_db, user=fs_user, password=fs_pass)
     assert l_bdc
@@ -49,37 +53,28 @@ def bdc_connect(fs_user=DS_USER, fs_pass=DS_PASS, fs_host=DS_HOST, fs_db=DS_DB):
     return l_bdc
 
 # ---------------------------------------------------------------------------------------------
-def bdc_save_stsc(fdt_gmt, fo_stsc, f_bdc):
+def bdc_save_stsc(fdt_gmt, fs_lat, fs_lng, f_bdc):
     """
     write stsc data to BDC
            
     :param fdt_gmt (datetime): date GMT
-    :param fo_stsc (SMETAR): carrapato METAF
+    :param fs_lat (str): latitude
+    :param fs_lng (str): longitude
     :param f_bdc (conn): connection to BDC
     """
-    # stsc date
-    # ls_day = fo_stsc.s_forecast_time[:2]
-    # ls_hour = fo_stsc.s_forecast_time[2:4]
-    # ls_min = fo_stsc.s_forecast_time[4:6]
+    # logger
+    M_LOG.info(">> bdc_save_stsc")
 
-    # build date & time
+    # build date & time from stsc date
     ldt_date = fdt_gmt.date()
-    ldt_time = fdt_gmt.time()
-    """
-    id serial4 NOT NULL,
-    latitude float8 NULL,
-    longitude float8 NULL,
-    datahoraocorrencia timestamp NULL,
-    ano int4 NULL,
-    mes int2 NULL,
-    dia int2 NULL,
-    id_stsc bigserial NOT NULL
-    """
+
+    # datetime to timestamp
+    li_tsp = datetime.datetime.timestamp(fdt_gmt)
+
     # make query
-    ls_query = "insert into stsc_n(id, latitude, longitude, datahoraocorrencia, " \
-               "ano, mes, dia, id_stsc) values ({}, {}, {}, {}, {}, {}, {}, {}) " \
-               .format(fo_stsc.s_icao_code, ldt_date, ldt_time,
-               li_vis, li_vis, li_vis, li_vis, li_vis)
+    ls_query = f"insert into stsc_n(latitude, longitude, datahoraocorrencia, " \
+               f"ano, mes, dia) values ({fs_lat}, {fs_lng}, {li_tsp}, " \
+               f"{ldt_date.year}, {ldt_date.month}, {ldt_date.day})"
 
     # write to BDC
     bdc_write(f_bdc, ls_query)
@@ -89,6 +84,9 @@ def bdc_write(f_bdc, fs_query):
     """
     execute query on BDC
     """
+    # logger
+    M_LOG.info(">> bdc_write")
+
     # create cursor
     l_cursor = f_bdc.cursor()
     assert l_cursor

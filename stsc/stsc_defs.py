@@ -12,10 +12,10 @@ import logging
 # < defines >----------------------------------------------------------------------------------
 
 # logging level
-DI_LOG_LEVEL = logging.DEBUG
-# DI_LOG_LEVEL = logging.WARNING
+# DI_LOG_LEVEL = logging.DEBUG
+DI_LOG_LEVEL = logging.WARNING
 
-# quantidade de horas a recuperar
-DI_DIFF_GMT = 1
+# diferença da hora local para GMT (valor absoluto)
+DI_DIFF_GMT = 3
 
 # < the end >----------------------------------------------------------------------------------
