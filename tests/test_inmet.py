@@ -1,6 +1,4 @@
 
-from cleo import worker as wk
-
 # content of test_sample.py
 def inc(x):
     return x + 1
