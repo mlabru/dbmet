@@ -1,0 +1,4 @@
+graypy
+pika
+python-dotenv
+streamlit
