@@ -10,10 +10,12 @@ stsc_data_redemet
 import json
 import logging
 import os
-import requests
 
 # dotenv
 from dotenv import load_dotenv
+
+# requests
+import requests
 
 # local
 import stsc_defs as df
