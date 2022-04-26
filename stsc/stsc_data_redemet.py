@@ -52,46 +52,43 @@ def redemet_get_stsc(fs_date):
     l_response = requests.get(DS_REDEMET_URL.format(DS_REDEMET_KEY, fs_date))
 
     # ok ?
-    if 200 == l_response.status_code:
-        try:
-            # decode REDEMET STSC data
-            ldct_stsc = json.loads(l_response.text)
-
-        # em caso de erro...
-        except json.decoder.JSONDecodeError as l_err:
-            # logger
-            M_LOG.error("REDEMET STSC data decoding error: %s.", str(l_err))
-            # quit
-            return None
-            
-        # flag status
-        lv_status = ldct_stsc.get("status", None)
-
-        if lv_status is not None and lv_status:
-            # STSC data
-            ldct_data = ldct_stsc.get("data", None)
-
-            if ldct_data:
-                # trata
-                return {"anima": ldct_data["anima"],
-                        "stsc": ldct_data["stsc"]}
-                                            
-            # senão, no ldct_data
-            else:
-                # logger
-                M_LOG.error("REDEMET STSC data have no data field: %s", str(ldct_stsc))
-
-        # senão, no lv_status
-        else:
-            # logger
-            M_LOG.error("REDEMET STSC data status error: %s", str(ldct_stsc))
-
-    # senão,...
-    else:
+    if 200 != l_response.status_code:
         # logger
         M_LOG.error("REDEMET STSC data not found. Code: %s", str(l_response.status_code))
+        # return error
+        return None
 
-    # return error
-    return None
+    try:
+        # decode REDEMET STSC data
+        ldct_stsc = json.loads(l_response.text)
 
+    # em caso de erro...
+    except json.decoder.JSONDecodeError as l_err:
+        # logger
+        M_LOG.error("REDEMET STSC data decoding error for %s: %s.", fs_date, str(l_err))
+        # return error
+        return None
+        
+    # flag status
+    lv_status = ldct_stsc.get("status", None)
+
+    if lv_status is None or not lv_status:
+        # logger
+        M_LOG.error("REDEMET STSC data status error for %s: %s", fs_date, str(ldct_stsc))
+        # return error
+        return None
+
+    # STSC data
+    ldct_data = ldct_stsc.get("data", None)
+
+    if not ldct_data:
+        # logger
+        M_LOG.error("REDEMET STSC data have no data field for %s: %s", fs_date, str(ldct_stsc))
+        # return error
+        return None
+
+    # trata
+    return {"anima": ldct_data["anima"],
+            "stsc": ldct_data["stsc"]}
+                                    
 # < the end >----------------------------------------------------------------------------------

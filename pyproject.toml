@@ -3,10 +3,10 @@ name = "dbmet"
 version = "0.1.0"
 description = "BDC load stuff"
 authors = ["Milton Abrunhosa <miltonmla@decea.mil.br>"]
-license = "MIT"
+license = "CC0 1.0 Universal"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.7"
 python-dotenv = "^0.20.0"
 requests = "^2.27.1"
 

@@ -34,7 +34,7 @@ DS_DATE_FORMAT = "%Y-%m-%dT%H"
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
-# ----------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 def arg_parse():
     """
     parse command line arguments
@@ -42,6 +42,9 @@ def arg_parse():
 
     :returns: arguments
     """
+    # logger
+    M_LOG.info(">> arg_parse")
+    
     # create parser
     l_parser = argparse.ArgumentParser(description="STSC (Tempo Severo).")
     assert l_parser
@@ -55,8 +58,9 @@ def arg_parse():
     # return arguments
     return l_parser.parse_args()
 
-# ----------------------------------------------------------------------------------------------
-def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
+# ---------------------------------------------------------------------------------------------
+# def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
+def trata_stsc(fdt_ini, f_bdc):
     """
     trata stsc
 
@@ -67,18 +71,24 @@ def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
     M_LOG.info(">> trata_stsc")
     
     # format full date
-    ls_date: str = fdt_ini.strftime("%Y%m%d%H")
+    ls_date = fdt_ini.strftime("%Y%m%d%H")
 
     # show info
     print(f"Processing date: {ls_date}.")
 
     # get STSC data
-    ldct_stsc: dict = dr.redemet_get_stsc(ls_date)
+    ldct_stsc = dr.redemet_get_stsc(ls_date)
+
+    if not ldct_stsc:
+        # logger
+        M_LOG.warning("Error for date: %s", ls_date)
+        # return
+        return
 
     # lista de horas
-    llst_anima: list = ldct_stsc["anima"]
+    llst_anima = ldct_stsc["anima"]
     # lista de lat/lng
-    llst_stsc: list = ldct_stsc["stsc"]
+    llst_stsc = ldct_stsc["stsc"]
 
     # para todas as horas...
     for li_ndx, ls_hora in enumerate(llst_anima):
@@ -93,7 +103,7 @@ def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
             # grava registro no banco
             sb.bdc_save_stsc(fdt_ini, ldct_ll["la"], ldct_ll["lo"], f_bdc)
     
-# ----------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 def main():
     """
     main
@@ -112,7 +122,7 @@ def main():
     ldt_ini, li_delta = dt.get_date_range(l_args, DI_DELTA_TIME, DS_DATE_FORMAT)
     
     # for all dates...
-    for li_i in range(1):  #li_delta):
+    for li_i in range(li_delta):
         # create thread trata_carrapato
         trata_stsc(ldt_ini, l_bdc)
     
@@ -122,7 +132,7 @@ def main():
     # close BDC
     l_bdc.close()
 
-# ----------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 # this is the bootstrap process
 
 if "__main__" == __name__:
@@ -135,4 +145,4 @@ if "__main__" == __name__:
     # run application
     sys.exit(main())
         
-# < the end >-----------------------------------------------------------------------------------
+# < the end >----------------------------------------------------------------------------------

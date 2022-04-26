@@ -69,11 +69,11 @@ def bdc_save_stsc(fdt_gmt, fs_lat, fs_lng, f_bdc):
     ldt_date = fdt_gmt.date()
 
     # datetime to timestamp
-    li_tsp = datetime.datetime.timestamp(fdt_gmt)
+    ls_tsp = fdt_gmt.strftime("%Y%m%d %H:%M:%S")
 
     # make query
     ls_query = f"insert into stsc_n(latitude, longitude, datahoraocorrencia, " \
-               f"ano, mes, dia) values ({fs_lat}, {fs_lng}, {li_tsp}, " \
+               f"ano, mes, dia) values ({fs_lat}, {fs_lng}, '{ls_tsp}', " \
                f"{ldt_date.year}, {ldt_date.month}, {ldt_date.day})"
 
     # write to BDC
