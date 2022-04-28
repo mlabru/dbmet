@@ -16,7 +16,7 @@ import sys
 import amdar.amd_data_redemet as dr
 import amdar.amd_defs as df
 import amdar.amd_send_bdc as sb
-import amdar.utl_dates as dt
+import utils.utl_dates as dt
 
 # < defines >----------------------------------------------------------------------------------
 

@@ -30,6 +30,9 @@ if [ ! -z "$DI_PID_LOADER" ]; then
     sleep 3
 fi
 
+# set PYTHONPATH
+export PYTHONPATH="$PWD/."
+
 # executa o loader
 python3 amdar/carga_amdar.py $@ > logs/carga_amdar.$HOST.$TDATE.log 2>&1 &
 

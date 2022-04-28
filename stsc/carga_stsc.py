@@ -16,7 +16,7 @@ import sys
 import stsc.stsc_data_redemet as dr
 import stsc.stsc_defs as df
 import stsc.stsc_send_bdc as sb
-import stsc.utl_dates as dt
+import utils.utl_dates as dt
 
 # < defines >----------------------------------------------------------------------------------
 
