@@ -1,4 +1,4 @@
-import stsc.utl_dates as udt
+import amdar.utl_dates as udt
 
 # content of test_sample.py
 def inc(x):
