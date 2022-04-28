@@ -7,23 +7,23 @@ amd_send_bdc
 # < imports >----------------------------------------------------------------------------------
 
 # python library
-import datetime
 import logging
 import os
+import typing
+
+# dotenv
+import dotenv
 
 # postgres
 import psycopg2
 
-# dotenv
-from dotenv import load_dotenv
-
 # local
-import amd_defs as df
+import amdar.amd_defs as df
 
 # < environment >------------------------------------------------------------------------------
 
 # take environment variables from .env
-load_dotenv()
+dotenv.load_dotenv()
 
 # DB connection
 DS_HOST = os.getenv("DS_HOST")
@@ -38,7 +38,10 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def bdc_connect(fs_user: str=DS_USER, fs_pass: str=DS_PASS, fs_host: str=DS_HOST, fs_db=DS_DB):
+def bdc_connect(fs_user: typing.Optional[str] = DS_USER,
+                fs_pass: typing.Optional[str] = DS_PASS,
+                fs_host: typing.Optional[str] = DS_HOST,
+                fs_db: typing.Optional[str] = DS_DB):
     """
     connect to BDC.
 
@@ -63,7 +66,7 @@ def bdc_connect(fs_user: str=DS_USER, fs_pass: str=DS_PASS, fs_host: str=DS_HOST
 def bdc_save_amdar(fdt_ini, fdct_voo: dict, f_bdc):
     """
     write amdar data to BDC.
-           
+
     :param fdt_ini (datetime): date GMT
     :param fdct_voo (dict): dados do vôo
     :param f_bdc (conn): connection to BDC

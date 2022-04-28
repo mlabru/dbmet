@@ -23,7 +23,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(logging.DEBUG)
 
 # ---------------------------------------------------------------------------------------------
-def get_date_range(f_args, fi_delta: int, fs_format: str) -> tuple:  # [datetime.datetime, int]:
+def get_date_range(f_args, fi_delta: int, fs_format: str) -> tuple[datetime.datetime, int]:
     """
     get initial and final dates
 
@@ -79,11 +79,10 @@ def get_date_range(f_args, fi_delta: int, fs_format: str) -> tuple:  # [datetime
     return ldt_ini.replace(minute=0, second=0, microsecond=0), li_delta
 
 # ---------------------------------------------------------------------------------------------
-# def parse_date(fs_date: str, fs_format: str="%Y-%m-%dT%H:M") -> datetime.datetime:
-def parse_date(fs_date: str, fs_format="%Y-%m-%dT%H:M"):
+def parse_date(fs_date: str, fs_format: str = "%Y-%m-%dT%H:M") -> datetime.datetime:
     """
     parse date
-    
+
     :param fs_date (str): date to be parsed
 
     :returns (datetime): date in datetime format
@@ -95,7 +94,7 @@ def parse_date(fs_date: str, fs_format="%Y-%m-%dT%H:M"):
         ldt_date = ldt_date.replace(minute=0)
 
     # em caso de erro,...
-    except Exception as l_err:
+    except ValueError as l_err:
         # logger
         M_LOG.error("Date format error: %s. Aborting.", l_err)
 

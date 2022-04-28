@@ -9,9 +9,16 @@ license = "CC0 1.0 Universal"
 python = "^3.7"
 python-dotenv = "^0.20.0"
 requests = "^2.27.1"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
+mypy = "^0.950"
+pylint = "^2.13.7"
+autopep8 = "^1.6.0"
+types-requests = "^2.27.24"
+flake8 = "^4.0.1"
+pytest-coverage = "^0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

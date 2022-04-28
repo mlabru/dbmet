@@ -10,16 +10,14 @@ carga_amdar
 import argparse
 import datetime
 import logging
-import os
 import sys
 
 # local
-import amd_defs as df
-import amd_send_bdc as sb
-import amd_data_redemet as dr
+import amdar.amd_data_redemet as dr
+import amdar.amd_defs as df
+import amdar.amd_send_bdc as sb
+import amdar.utl_dates as dt
 
-import utl_dates as dt
- 
 # < defines >----------------------------------------------------------------------------------
 
 # time range
@@ -44,11 +42,11 @@ def arg_parse():
     """
     # logger
     M_LOG.info(">> arg_parse")
-    
+
     # create parser
     l_parser = argparse.ArgumentParser(description="Informações AMDAR.")
     assert l_parser
-    
+
     # args
     l_parser.add_argument("-f", "--dfnl", dest="dfnl", action="store", default="x",
                           help="Final date.")
@@ -68,7 +66,7 @@ def trata_amdar(fdt_ini: datetime.datetime, f_bdc):
     """
     # logger
     M_LOG.info(">> trata_amdar")
-    
+
     # format full initial date
     ls_date_ini = fdt_ini.strftime("%Y%m%d%H")
 
@@ -94,7 +92,7 @@ def trata_amdar(fdt_ini: datetime.datetime, f_bdc):
     for ldct_voo in llst_amdar:
         # grava registro no banco
         sb.bdc_save_amdar(fdt_ini, ldct_voo, f_bdc)
-    
+
 # ---------------------------------------------------------------------------------------------
 def main():
     """
@@ -106,18 +104,18 @@ def main():
     # connect BDC
     l_bdc = sb.bdc_connect()
     assert l_bdc
-    
+
     # time delta for processing without final date
     ldt_1hour = datetime.timedelta(hours=DI_DELTA_TIME)
-    
+
     # date range
     ldt_ini, li_delta = dt.get_date_range(l_args, DI_DELTA_TIME, DS_DATE_FORMAT)
 
     # for all dates...
-    for li_i in range(li_delta):
+    for _ in range(li_delta):
         # create thread trata_amdar
         trata_amdar(ldt_ini, l_bdc)
-    
+
         # save new initial
         ldt_ini += ldt_1hour
 
@@ -136,5 +134,5 @@ if "__main__" == __name__:
 
     # run application
     sys.exit(main())
-        
+
 # < the end >----------------------------------------------------------------------------------

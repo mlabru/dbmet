@@ -10,20 +10,21 @@ amd_data_redemet
 import json
 import logging
 import os
+import typing
 
 # dotenv
-from dotenv import load_dotenv
+import dotenv
 
 # requests
 import requests
 
 # local
-import amd_defs as df
+import amdar.amd_defs as df
 
 # < environment >------------------------------------------------------------------------------
 
 # take environment variables from .env
-load_dotenv()
+dotenv.load_dotenv()
 
 # REDEME API Key
 DS_REDEMET_KEY = os.getenv("DS_REDEMET_KEY")
@@ -41,7 +42,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def redemet_get_amdar(fs_date_ini: str, fs_date_fin: str) -> list:
+def redemet_get_amdar(fs_date_ini: str, fs_date_fin: str) -> typing.Any:
     """
     request de dados de informações do AMDAR
 
@@ -77,7 +78,7 @@ def redemet_get_amdar(fs_date_ini: str, fs_date_fin: str) -> list:
         M_LOG.error("AMDAR data decoding error for %s: %s.", fs_date_ini, str(l_err))
         # return error
         return None
-        
+
     # flag status
     lv_status = ldct_amdar.get("status", None)
 
@@ -98,5 +99,5 @@ def redemet_get_amdar(fs_date_ini: str, fs_date_fin: str) -> list:
 
     # trata
     return llst_data
-                                    
+
 # < the end >----------------------------------------------------------------------------------

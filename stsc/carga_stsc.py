@@ -10,16 +10,14 @@ carga_stsc
 import argparse
 import datetime
 import logging
-import os
 import sys
 
 # local
-import stsc_defs as df
-import stsc_send_bdc as sb
-import stsc_data_redemet as dr
+import stsc.stsc_data_redemet as dr
+import stsc.stsc_defs as df
+import stsc.stsc_send_bdc as sb
+import stsc.utl_dates as dt
 
-import utl_dates as dt
- 
 # < defines >----------------------------------------------------------------------------------
 
 # time range
@@ -44,11 +42,11 @@ def arg_parse():
     """
     # logger
     M_LOG.info(">> arg_parse")
-    
+
     # create parser
     l_parser = argparse.ArgumentParser(description="STSC (Tempo Severo).")
     assert l_parser
-    
+
     # args
     l_parser.add_argument("-f", "--dfnl", dest="dfnl", action="store", default="x",
                           help="Final date.")
@@ -69,7 +67,7 @@ def trata_stsc(fdt_ini, f_bdc):
     """
     # logger
     M_LOG.info(">> trata_stsc")
-    
+
     # format full date
     ls_date = fdt_ini.strftime("%Y%m%d%H")
 
@@ -96,13 +94,13 @@ def trata_stsc(fdt_ini, f_bdc):
         li_min = int(ls_hora[0:2])
         li_seg = int(ls_hora[3:])
         # ajusta minutos e segundos na data
-        fdt_ini = fdt_ini.replace(minute=li_min, second=li_seg)        
+        fdt_ini = fdt_ini.replace(minute=li_min, second=li_seg)
 
         # pata todos os lat/lng...
         for ldct_ll in llst_stsc[li_ndx]:
             # grava registro no banco
             sb.bdc_save_stsc(fdt_ini, ldct_ll["la"], ldct_ll["lo"], f_bdc)
-    
+
 # ---------------------------------------------------------------------------------------------
 def main():
     """
@@ -114,18 +112,18 @@ def main():
     # connect BDC
     l_bdc = sb.bdc_connect()
     assert l_bdc
-    
+
     # time delta
     ldt_1hour = datetime.timedelta(hours=DI_DELTA_TIME)
-    
+
     # date range
     ldt_ini, li_delta = dt.get_date_range(l_args, DI_DELTA_TIME, DS_DATE_FORMAT)
-    
+
     # for all dates...
-    for li_i in range(li_delta):
+    for _ in range(li_delta):
         # create thread trata_carrapato
         trata_stsc(ldt_ini, l_bdc)
-    
+
         # save new initial
         ldt_ini += ldt_1hour
 
@@ -144,5 +142,5 @@ if "__main__" == __name__:
 
     # run application
     sys.exit(main())
-        
+
 # < the end >----------------------------------------------------------------------------------

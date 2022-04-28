@@ -12,18 +12,18 @@ import logging
 import os
 
 # dotenv
-from dotenv import load_dotenv
+import dotenv
 
 # requests
 import requests
 
 # local
-import stsc_defs as df
+import stsc.stsc_defs as df
 
 # < environment >------------------------------------------------------------------------------
 
 # take environment variables from .env
-load_dotenv()
+dotenv.load_dotenv()
 
 # REDEME API Key
 DS_REDEMET_KEY = os.getenv("DS_REDEMET_KEY")
@@ -68,7 +68,7 @@ def redemet_get_stsc(fs_date):
         M_LOG.error("REDEMET STSC data decoding error for %s: %s.", fs_date, str(l_err))
         # return error
         return None
-        
+
     # flag status
     lv_status = ldct_stsc.get("status", None)
 
@@ -90,5 +90,5 @@ def redemet_get_stsc(fs_date):
     # trata
     return {"anima": ldct_data["anima"],
             "stsc": ldct_data["stsc"]}
-                                    
+
 # < the end >----------------------------------------------------------------------------------

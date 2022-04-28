@@ -7,23 +7,22 @@ stsc_send_bdc
 # < imports >----------------------------------------------------------------------------------
 
 # python library
-import datetime
 import logging
 import os
+
+# dotenv
+import dotenv
 
 # postgres
 import psycopg2
 
-# dotenv
-from dotenv import load_dotenv
-
 # local
-import stsc_defs as df
+import stsc.stsc_defs as df
 
 # < environment >------------------------------------------------------------------------------
 
 # take environment variables from .env
-load_dotenv()
+dotenv.load_dotenv()
 
 # DB connection
 DS_HOST = os.getenv("DS_HOST")
@@ -56,7 +55,7 @@ def bdc_connect(fs_user=DS_USER, fs_pass=DS_PASS, fs_host=DS_HOST, fs_db=DS_DB):
 def bdc_save_stsc(fdt_gmt, fs_lat, fs_lng, f_bdc):
     """
     write stsc data to BDC
-           
+
     :param fdt_gmt (datetime): date GMT
     :param fs_lat (str): latitude
     :param fs_lng (str): longitude
