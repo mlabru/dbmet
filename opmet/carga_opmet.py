@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-CargaOpmetToMongoDB
+carga_opmet
 
 2022.jun  mlabru   tabela de localidades
 2021.may  oswaldo  location
@@ -23,6 +23,12 @@ import time
 # local
 import opmet.opm_defs as df
 import opmet.opm_db as db
+import utils.utl_dates as ud
+
+# < defines >----------------------------------------------------------------------------------
+
+# date format
+DS_DATE_FORMAT = "%Y-%m-%dT%H:%M"
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -137,12 +143,12 @@ def get_date_range(f_args):
     # just initial date ?
     elif ("x" != f_args.dini) and ("x" == f_args.dfnl):
         # parse initial date
-        ldt_ini = parse_date(f_args.dini)
+        ldt_ini = ud.parse_date(f_args.dini, DS_DATE_FORMAT)
 
     # just final date ?
     elif ("x" == f_args.dini) and ("x" != f_args.dfnl):
         # parse final date
-        ldt_fnl = parse_date(f_args.dfnl)
+        ldt_fnl = ud.parse_date(f_args.dfnl, DS_DATE_FORMAT)
 
         # delta
         ldt_ini = ldt_fnl - datetime.timedelta(minutes=59)
@@ -150,10 +156,10 @@ def get_date_range(f_args):
     # so, both dates
     else:
         # parse initial date
-        ldt_ini = parse_date(f_args.dini)
+        ldt_ini = ud.parse_date(f_args.dini, DS_DATE_FORMAT)
 
         # parse final date
-        ldt_fnl = parse_date(f_args.dfnl)
+        ldt_fnl = ud.parse_date(f_args.dfnl, DS_DATE_FORMAT)
 
         # calculate difference
         li_delta = ldt_fnl - ldt_ini
@@ -257,29 +263,6 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
         time.sleep(df.DI_RETRY * 60)
 
 # ---------------------------------------------------------------------------------------------
-def parse_date(fs_data):
-    """
-    parse date
-
-    :param fs_data: date to be parsed
-
-    :returns: date in datetime format
-    """
-    try:
-        # parse data
-        l_datetime = datetime.datetime.strptime(fs_data, "%Y-%m-%dT%H:%M")
-
-    # em caso de erro,...
-    except Exception as lerr:
-        # logger
-        M_LOG.error("date format error: %s.", str(lerr))
-        # abort
-        sys.exit(-1)
-
-    # return date in datetime format
-    return l_datetime
-
-# ---------------------------------------------------------------------------------------------
 def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param: str, f_args):
     """
     build URL for search parameters and load
@@ -330,14 +313,14 @@ def main():
     # for all dates...
     for li_i in range(li_delta):
         # convert initial date
-        ls_date_ini = ldt_ini.strftime("%Y-%m-%dT%H:%M")
+        ls_date_ini = ldt_ini.strftime(DS_DATE_FORMAT)
         M_LOG.debug("ls_date_ini: %s", ls_date_ini)
 
         # delta
         ldt_fnl = ldt_ini + datetime.timedelta(minutes=59)
 
         # convert final date
-        ls_date_fnl = ldt_fnl.strftime("%Y-%m-%dT%H:%M")
+        ls_date_fnl = ldt_fnl.strftime(DS_DATE_FORMAT)
         M_LOG.debug("ls_date_fnl: %s", ls_date_fnl)
 
         # save new initial

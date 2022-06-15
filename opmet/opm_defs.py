@@ -18,7 +18,7 @@ import dotenv
 # take environment variables from .env
 dotenv.load_dotenv()
 
-# < defines >--------------------------------------------------------------------------------------
+# < defines >----------------------------------------------------------------------------------
 
 # logging level
 DI_LOG_LEVEL = logging.WARNING
