@@ -1,6 +1,6 @@
 ###
 # target systems
-TARGET_SYS = ./amdar ./opmet ./stsc ./utils
+TARGET_SYS = ./amdar ./inmet ./opmet ./stsc ./utils
 
 ###
 # config

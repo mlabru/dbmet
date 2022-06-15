@@ -9,12 +9,13 @@ inm_bdc
 # python library
 import logging
 import math
+import typing
 
 # postgres
 import psycopg2
 
 # local
-import inm_defs as df
+import inmet.inm_defs as df
 
 # < defines >----------------------------------------------------------------------------------
 
@@ -29,8 +30,10 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def connect_bdc(fs_user: str=df.DS_USER, fs_pass: str=df.DS_PASS,
-                fs_host: str=df.DS_HOST, fs_db: str=df.DS_DB):
+def connect_bdc(fs_user: typing.Optional[str] = df.DS_USER,
+                fs_pass: typing.Optional[str] = df.DS_PASS,
+                fs_host: typing.Optional[str] = df.DS_HOST,
+                fs_db: typing.Optional[str] = df.DS_DB):
     """
     connect to BDC
 
@@ -49,25 +52,13 @@ def connect_bdc(fs_user: str=df.DS_USER, fs_pass: str=df.DS_PASS,
     return l_bdc
 
 # ---------------------------------------------------------------------------------------------
-def get_val(f_dct: dict, fs_key: str, f_default):
-    """
-    get value
-    """
-    # float val
-    lval = f_dct.get(fs_key, None)
-
-    # return
-    return f_default if lval is None else lval
-
-# ---------------------------------------------------------------------------------------------
-def send_to_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict, fs_hora: str):
+def send_to_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict):
     """
     write data to BDC
 
     :param f_bdc: conexão com o BDC
     :param fdct_dado (dict): dicionário de dados
     :param fdct_alt (dict): dicionário de altitudes das estações
-    :param fs_hora (str): hora formatada
     """
     # código da estação
     ls_station = str(fdct_dado["CD_ESTACAO"])
@@ -75,7 +66,7 @@ def send_to_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict, fs_hora: str):
     # altitude
     lf_alt = float(fdct_alt.get(ls_station, 0))
     M_LOG.debug("lf_alt: %s", str(lf_alt))
-    
+
     # QFE
     lf_qfe = float(fdct_dado.get("PRE_INS", 0))
     # QNH
@@ -86,6 +77,7 @@ def send_to_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict, fs_hora: str):
     assert l_cursor
 
     # make query
+    # pylint: disable=duplicate-string-formatting-argument, consider-using-f-string
     ls_query = "insert into dado_meteorologico_inmet(ven_dir, dt_medicao,"\
                "dc_nome, chuva, pre_ins, vl_latitude, pre_min, umd_max,"\
                "pre_max, ven_vel, uf, pto_min, tem_max, rad_glo, pto_ins,"\

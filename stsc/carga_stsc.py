@@ -93,7 +93,7 @@ def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
         li_hor = int(ls_hora[0:2])
         li_min = int(ls_hora[3:])
 
-        # hora da busca ? 
+        # hora da busca ?
         if fdt_ini.hour != li_hor:
             # despreza
             continue

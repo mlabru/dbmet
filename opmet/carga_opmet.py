@@ -16,13 +16,15 @@ import argparse
 import datetime
 import json
 import logging
-import requests
 import sys
 import time
 
+# requests
+import requests
+
 # local
-import opmet.opm_defs as df
 import opmet.opm_db as db
+import opmet.opm_defs as df
 import utils.utl_dates as ud
 
 # < defines >----------------------------------------------------------------------------------
@@ -115,7 +117,7 @@ def get_data_type(f_args):
         return df.DLST_PARAM
 
     # logger
-    M_LOG.error("error in data type: %s. Assuming defaults.", ls_type)
+    M_LOG.error("error in data type: %s. Assuming defaults.", str(ls_type))
 
     # return default
     return df.DLST_DEFAULT_PARAM
@@ -179,7 +181,7 @@ def get_ext_stations(fdct_header: dict) -> str:
     ls_url = df.DS_URL_LOC
 
     # request payload
-    ldct_payload = {}
+    ldct_payload: dict = {}
 
     # make request
     l_response = requests.request("GET", ls_url,
@@ -209,7 +211,7 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
     :param fs_param (str): parameter to search and save
     """
     # request payload
-    ldct_payload = {}
+    ldct_payload: dict = {}
 
     # init counter
     li_counter = 0
@@ -223,14 +225,18 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
                                           headers=fdct_header,
                                           data=ldct_payload,
                                           verify=False)
-
         # em caso de erro...
         except requests.exceptions.RequestException as l_err:
             # logger
             M_LOG.error("error in request: %s", str(l_err))
 
+        # not found ?
+        if 404 == l_response.status_code:
+            # logger
+            M_LOG.warning("data not found.")
+
         # ok ?
-        if 200 == l_response.status_code:
+        elif 200 == l_response.status_code:
             # load data
             llst_data = json.loads(l_response.text)
 
@@ -244,12 +250,7 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
             M_LOG.warning("número de registros carregados: %d", len(llst_data["bdc"]))
 
             # cai fora
-            break
-
-        # not fount ?
-        elif 404 == l_response.status_code:
-            # logger
-            M_LOG.warning("data not found.")
+            return
 
         # senão,...
         else:
@@ -274,20 +275,17 @@ def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param:
 
         # build URL (target station)
         ls_url = df.DS_URL_OBS.format(fs_param, ls_code, fs_date_ini, fs_date_fnl)
-        M_LOG.debug("ls_url: %s", str(ls_url))
 
     # senão,...
     else:
         # build URL (all stations)
         ls_url = df.DS_URL_INS.format(fs_param, fs_date_ini, fs_date_fnl)
-        M_LOG.debug("ls_url: %s", str(ls_url))
 
         # search and save parameter
         load_param(fdct_header, ls_url, fs_param)
 
         # build URL (extra stations)
         ls_url = df.DS_URL_OBS.format(fs_param, get_ext_stations(fdct_header), fs_date_ini, fs_date_fnl)
-        M_LOG.debug("ls_url: %s", str(ls_url))
 
     # search and save parameter
     load_param(fdct_header, ls_url, fs_param)
@@ -311,7 +309,7 @@ def main():
     M_LOG.debug("ldt_ini: %s  li_delta: %d", ldt_ini, li_delta)
 
     # for all dates...
-    for li_i in range(li_delta):
+    for _ in range(li_delta):
         # convert initial date
         ls_date_ini = ldt_ini.strftime(DS_DATE_FORMAT)
         M_LOG.debug("ls_date_ini: %s", ls_date_ini)
@@ -345,7 +343,9 @@ if "__main__" == __name__:
     # logging.disable(sys.maxsize)
 
     # run application
-    sys.exit(main())
+    main()
+
+    # exit ok
+    sys.exit(0)
 
 # < the end >----------------------------------------------------------------------------------
-    

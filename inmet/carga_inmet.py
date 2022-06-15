@@ -11,11 +11,13 @@ import datetime
 import json
 import logging
 import sys
+
+# requests
 import requests
 
 # local
-import inm_defs as df
-import inm_bdc as db
+import inmet.inm_bdc as db
+import inmet.inm_defs as df
 
 # < defines >----------------------------------------------------------------------------------
 
@@ -66,7 +68,7 @@ def get_stations_altitudes() -> dict:
     # not ok ?
     if 200 != l_response.status_code:
         # logger
-        M_LOG.fatal(DS_INMET_URL + " não está acessível (1). Aborting.")
+        M_LOG.fatal("%s não está acessível (1). Aborting.", DS_INMET_URL)
         # abort
         sys.exit(-1)
 
@@ -107,7 +109,7 @@ def main():
     # not ok ?
     if 200 != l_response.status_code:
         # logger
-        M_LOG.fatal(DS_INMET_URL + " está inacessível (2). Aborting.")
+        M_LOG.fatal("%s não está acessível (2). Aborting.", DS_INMET_URL)
         # abort
         sys.exit(-1)
 
@@ -137,7 +139,7 @@ def main():
             continue
 
         # write data to BDC
-        db.send_to_bdc(l_bdc, ldct_dado, ldct_stations_alt, ls_hora)
+        db.send_to_bdc(l_bdc, ldct_dado, ldct_stations_alt)
 
     # close BDC
     l_bdc.close()
