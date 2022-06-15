@@ -42,6 +42,18 @@ instalar:  ## instala programa usando poetry, poetry precisa estar instalado
 	poetry install
 
 ###
+## @ auditagem
+.PHONY: audit safety audits  ## verifica vulnerabilidades
+
+audit:
+	${POETRY} pip-audit
+
+safety:
+	${POETRY} safety check
+
+audits: audit safety
+
+###
 ## @ análise
 .PHONY: autopep8 flake misort mypy pylint analise
 

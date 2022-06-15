@@ -57,8 +57,7 @@ def arg_parse():
     return l_parser.parse_args()
 
 # ---------------------------------------------------------------------------------------------
-# def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
-def trata_stsc(fdt_ini, f_bdc):
+def trata_stsc(fdt_ini: datetime.datetime, f_bdc):
     """
     trata stsc
 
@@ -71,10 +70,10 @@ def trata_stsc(fdt_ini, f_bdc):
     # format full date
     ls_date = fdt_ini.strftime("%Y%m%d%H")
 
-    # show info
+    # info
     print(f"Processing date: {ls_date}.")
 
-    # get STSC data
+    # STSC data dictionary
     ldct_stsc = dr.redemet_get_stsc(ls_date)
 
     if not ldct_stsc:
@@ -84,27 +83,33 @@ def trata_stsc(fdt_ini, f_bdc):
         return
 
     # lista de horas
-    llst_anima = ldct_stsc["anima"]
+    llst_horas = ldct_stsc["anima"]
     # lista de lat/lng
-    llst_stsc = ldct_stsc["stsc"]
+    llst_lat_lngs = ldct_stsc["stsc"]
 
     # para todas as horas...
-    for li_ndx, ls_hora in enumerate(llst_anima):
-        # minutos e segundos da hora
-        li_min = int(ls_hora[0:2])
-        li_seg = int(ls_hora[3:])
-        # ajusta minutos e segundos na data
-        fdt_ini = fdt_ini.replace(minute=li_min, second=li_seg)
+    for li_ndx, ls_hora in enumerate(llst_horas):
+        # hora e minutos do anima
+        li_hor = int(ls_hora[0:2])
+        li_min = int(ls_hora[3:])
+
+        # hora da busca ? 
+        if fdt_ini.hour != li_hor:
+            # despreza
+            continue
+
+        # ajusta minutos na data
+        fdt_ini = fdt_ini.replace(minute=li_min)
 
         # pata todos os lat/lng...
-        for ldct_ll in llst_stsc[li_ndx]:
+        for ldct_ll in llst_lat_lngs[li_ndx]:
             # grava registro no banco
             sb.bdc_save_stsc(fdt_ini, ldct_ll["la"], ldct_ll["lo"], f_bdc)
 
 # ---------------------------------------------------------------------------------------------
 def main():
     """
-    main
+    drive app
     """
     # get program arguments
     l_args = arg_parse()
@@ -121,10 +126,10 @@ def main():
 
     # for all dates...
     for _ in range(li_delta):
-        # create thread trata_carrapato
+        # trata_stsc
         trata_stsc(ldt_ini, l_bdc)
 
-        # save new initial
+        # next hour
         ldt_ini += ldt_1hour
 
     # close BDC
