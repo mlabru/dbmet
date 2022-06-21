@@ -13,7 +13,7 @@ import logging
 import pymongo
 
 # local
-import opmet.opm_defs as df
+import opmet.opm_defs as df  
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -21,12 +21,12 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def save_data(fs_param: str, flst_data: list):
+def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
     """
     save data
 
     :param fs_param (str): kind
-    :param flst_data (list): data to be saved
+    :param flst_data (list): data to be saved 
     """
     # logger
     M_LOG.info(">> save_data")
@@ -34,22 +34,34 @@ def save_data(fs_param: str, flst_data: list):
     # check input
     assert fs_param in df.DLST_PARAM
 
-    # mongoDB connection
-    l_conexao_mongo: pymongo.mongo_client.MongoClient
-    l_conexao_mongo = pymongo.MongoClient(df.DS_DB_ADDR, df.DI_DB_PORT)
-    assert l_conexao_mongo
+    # have data ?
+    if not flst_data:
+        # logger
+        M_LOG.warning("empty list. Nothing write to DB.")
+        # return
+        return
 
+    # mongoDB connection
+    l_conexao_mongo = pymongo.MongoClient(df.DS_DB_ADDR, df.DI_DB_PORT)
+    assert l_conexao_mongo 
+    
     # banco de dados Opmet
     l_banco_dados_opmet = l_conexao_mongo.opmet
     assert l_banco_dados_opmet
 
-    # observação meteorologica ?
-    if "iepv" == fs_param:
+    # observação meteorológica de estações extras ?
+    if "iepv" == fs_param and fv_xtra:
+        # observação meteorologica
+        l_collection = l_banco_dados_opmet.observacaoMeteorologicaNovas
+        assert l_collection
+
+    # observação meteorológica de estações FAB ?
+    elif "iepv" == fs_param:
         # observação meteorologica
         l_collection = l_banco_dados_opmet.observacaoMeteorologica
         assert l_collection
 
-    # altitude ?
+    # altitude ? 
     elif "ptu" == fs_param:
         # altitude
         l_collection = l_banco_dados_opmet.ptu
@@ -65,29 +77,21 @@ def save_data(fs_param: str, flst_data: list):
     else:
         # invalid collection
         l_collection = None
-
         # logger
         M_LOG.error("invalid collection: %s.", fs_param)
 
     try:
-        # have data ?
-        if flst_data:
-            # insert list
-            l_collection.insert_many(flst_data)
-
-        # senão,...
-        else:
-            # logger
-            M_LOG.warning("empty list.")
-
-    # em caso de timeout...
-    except pymongo.errors.ServerSelectionTimeoutError as l_err:
-        # logger
-        M_LOG.error("timeout on connection to MongoDB: %s.", str(l_err))
-
+        # insert list
+        l_collection.insert_many(flst_data)
+        
     # em caso de erro de conexão...
     except pymongo.errors.ConnectionFailure as l_err:
         # logger
         M_LOG.error("could not connect to MongoDB: %s.", str(l_err))
 
+    # em caso de timeout...
+    except pymongo.errors.ServerSelectionTimeoutError as l_err:
+        # logger
+        M_LOG.error("timeout on connection to MongoDB: %s.", str(l_err))
+    
 # < the end >----------------------------------------------------------------------------------

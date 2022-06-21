@@ -18,22 +18,30 @@ if [ -d ${DBMET} ]; then
     cd ${DBMET}
 fi
 
+# log file
+LOGF="logs/carga_opmet.$HOST.$TDATE.log"
+
+# logger
+echo "Início de processamento: " $(date '+%Y-%m-%d %H:%M') > $LOGF
+
 # ckeck if another instance of loader is running
 DI_PID_LOADER=`ps ax | grep -w python3 | grep -w carga_opmet.py | awk '{ print $1 }'`
 
 if [ ! -z "$DI_PID_LOADER" ]; then
     # log warning
-    echo "[`date`]: process loader is already running. Restarting..."
+    echo "[`date`]: process loader is already running. Waiting..." >> $LOGF
     # kill process
-    kill -9 $DI_PID_LOADER
-    # wait 3s
-    sleep 3
+    # kill -9 $DI_PID_LOADER
+    # wait 10s
+    sleep 10
 fi
 
 # set PYTHONPATH
 export PYTHONPATH="$PWD/."
-
 # executa o loader
-python3 opmet/carga_opmet.py $@ > logs/carga_opmet.$HOST.$TDATE.log 2>&1 &
+python3 opmet/carga_opmet.py $@ >> $LOGF 2>&1
+
+# logger
+echo "Fim de processamento: " $(date '+%Y-%m-%d %H:%M') >> $LOGF
 
 # < the end >----------------------------------------------------------------------------------

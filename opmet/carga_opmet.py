@@ -58,6 +58,9 @@ def arg_parse():
                           help="Final date.")
     l_parser.add_argument("-t", "--type", dest="type", action="store", default="x",
                           help="Data type.")
+    l_parser.add_argument("-x", "--xtra", dest="xtra", action="store_true",
+                          help="Only extra stations.")
+    l_parser.set_defaults(xtra=False)
 
     # return arguments
     return l_parser.parse_args()
@@ -81,18 +84,22 @@ def get_auth_token():
     # em caso de erro...
     except requests.exceptions.RequestException as l_err:
         # logger
-        M_LOG.error("error in request: %s.", str(l_err))
+        M_LOG.error("error in auth token request: %s.", str(l_err))
 
-    # any error ?
-    if 200 != l_response.status_code:
+    # ok ?
+    if 200 == l_response.status_code:
+        # return token
+        return l_response.text
+
+    # senão,...
+    else:
         # logger
-        M_LOG.warning("error on auth token.")
+        M_LOG.warning("error %d. No auth token.", l_response.status_code)
+        # logger
+        M_LOG.warning("request: %s", str(fs_url))
 
-        # returns a mimic token
-        return df.DS_DEFAULT_TOKEN
-
-    # return token
-    return l_response.text
+    # returns a mimic token
+    return df.DS_DEFAULT_TOKEN
 
 # ---------------------------------------------------------------------------------------------
 def get_data_type(f_args):
@@ -177,32 +184,48 @@ def get_ext_stations(fdct_header: dict) -> str:
 
     :returns: comma separated list of extra stations
     """
-    # build URL
-    ls_url = df.DS_URL_LOC
-
     # request payload
     ldct_payload: dict = {}
 
-    # make request
-    l_response = requests.request("GET", ls_url,
-                                  headers=fdct_header,
-                                  data=ldct_payload,
-                                  verify=False)
-
-    # response data
-    ldct_data = json.loads(l_response.text)
-
     # stations list
-    llst_data = ldct_data["locationCodes"]
+    llst_xtra = []
 
-    # clean up list
-    llst_data = [lext for lext in llst_data if lext[:2] not in ["EE", "SB", "TE", "XX"]]
+    # try make request
+    try:
+        # make request locations
+        l_response = requests.request("GET", df.DS_URL_LOCT,
+                                      headers=fdct_header,
+                                      data=ldct_payload,
+                                      verify=False)
+
+    # em caso de erro...
+    except requests.exceptions.RequestException as l_err:
+        # logger
+        M_LOG.error("error in location codes request: %s", str(l_err))
+
+    # ok ?
+    if 200 == l_response.status_code:
+        # response data
+        ldct_data = json.loads(l_response.text)
+
+        # stations list
+        llst_data = ldct_data.get("locationCodes", [])
+
+        # clean up list
+        llst_xtra = [lxt for lxt in llst_data if lxt[:2] not in ["EE", "SB", "TE", "XX"]]
+
+    # senão, ok...
+    else:
+        # logger
+        M_LOG.warning("error %d. Location codes not found.", l_response.status_code)
+        # logger
+        M_LOG.warning("request: %s", str(fs_url))
 
     # return
-    return ",".join(llst_data)
+    return ",".join(llst_xtra)
 
 # ---------------------------------------------------------------------------------------------
-def load_param(fdct_header: dict, fs_url: str, fs_param: str):
+def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=False):
     """
     get param from OpMet and save to mongoDB
 
@@ -228,15 +251,10 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
         # em caso de erro...
         except requests.exceptions.RequestException as l_err:
             # logger
-            M_LOG.error("error in request: %s", str(l_err))
-
-        # not found ?
-        if 404 == l_response.status_code:
-            # logger
-            M_LOG.warning("data not found.")
+            M_LOG.error("error in data request: %s", str(l_err))
 
         # ok ?
-        elif 200 == l_response.status_code:
+        if 200 == l_response.status_code:
             # load data
             llst_data = json.loads(l_response.text)
 
@@ -244,18 +262,33 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
             M_LOG.warning("ok. Sending to DB...")
 
             # save data to mongoDB
-            db.save_data(fs_param, llst_data["bdc"])
+            db.save_data(fs_param, llst_data["bdc"], fv_xtra)
 
             # logger
             M_LOG.warning("número de registros carregados: %d", len(llst_data["bdc"]))
+            # cai fora
+            return
 
+        # forbidden ?
+        elif 403 == l_response.status_code:
+            # logger
+            M_LOG.warning("request forbidden for %s.", str(fs_url))
+            # cai fora
+            return
+
+        # not found ?
+        elif 404 == l_response.status_code:
+            # logger
+            M_LOG.warning("data not found.")
             # cai fora
             return
 
         # senão,...
         else:
             # logger
-            M_LOG.warning("an unknow error has occurred in request.")
+            M_LOG.warning("request: %s", str(fs_url))
+            # logger
+            M_LOG.warning("an unknow error %d has occurred in request.", l_response.status_code)
 
         # increment counter
         li_counter += 1
@@ -264,7 +297,7 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str):
         time.sleep(df.DI_RETRY * 60)
 
 # ---------------------------------------------------------------------------------------------
-def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param: str, f_args):
+def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param: str, fs_xtras: str, f_args):
     """
     build URL for search parameters and load
     """
@@ -274,21 +307,29 @@ def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param:
         ls_code = str(f_args.code).upper()[:4]
 
         # build URL (target station)
-        ls_url = df.DS_URL_OBS.format(fs_param, ls_code, fs_date_ini, fs_date_fnl)
+        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, ls_code)
+        # logger
+        M_LOG.debug("somente a estação %s", ls_code)
 
     # senão,...
     else:
-        # build URL (all stations)
-        ls_url = df.DS_URL_INS.format(fs_param, fs_date_ini, fs_date_fnl)
+        # não só as extras ?
+        if not f_args.xtra:
+            # build URL (by date, FAB stations)
+            ls_url = df.DS_URL_DATE.format(fs_param, fs_date_ini, fs_date_fnl)
+            # logger
+            M_LOG.warning("all FAB stations...")
 
-        # search and save parameter
-        load_param(fdct_header, ls_url, fs_param)
+            # search and save parameter
+            load_param(fdct_header, ls_url, fs_param)
 
-        # build URL (extra stations)
-        ls_url = df.DS_URL_OBS.format(fs_param, get_ext_stations(fdct_header), fs_date_ini, fs_date_fnl)
+        # build URL (by date, extra stations)
+        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, fs_xtras)
+        # logger
+        M_LOG.warning("only xtra stations (%s)...", fs_xtras)
 
     # search and save parameter
-    load_param(fdct_header, ls_url, fs_param)
+    load_param(fdct_header, ls_url, fs_param, f_args.xtra)
 
 # ---------------------------------------------------------------------------------------------
 def main():
@@ -300,6 +341,13 @@ def main():
 
     # create header with auth token
     ldct_header = json.loads(get_auth_token())
+
+    # list of extra stations
+    ls_xtras = get_ext_stations(ldct_header) if "x" == l_args.code else ""
+   
+    if "" == ls_xtras:
+        # invalid station
+        ls_xtras = "xxxx"
 
     # data type
     llst_type = get_data_type(l_args)
@@ -327,10 +375,9 @@ def main():
         # for all params...
         for ls_param in llst_type:
             # logger
-            M_LOG.warning("running for param: %s.", ls_param)
-
+            M_LOG.warning("running for param: %s from %s to %s.", ls_param, ls_date_ini, ls_date_fnl)
             # get and load param to mongoDB
-            trata_param(ldct_header, ls_date_ini, ls_date_fnl, ls_param, l_args)
+            trata_param(ldct_header, ls_date_ini, ls_date_fnl, ls_param, ls_xtras, l_args)
 
 # ---------------------------------------------------------------------------------------------
 # this is the bootstrap process

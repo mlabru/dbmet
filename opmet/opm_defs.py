@@ -18,7 +18,7 @@ import dotenv
 # take environment variables from .env
 dotenv.load_dotenv()
 
-# < defines >----------------------------------------------------------------------------------
+# < defines >--------------------------------------------------------------------------------------
 
 # logging level
 DI_LOG_LEVEL = logging.WARNING
@@ -41,7 +41,6 @@ DDCT_HEADER_AUTH = {
 }
 
 # request default token
-# pylint: disable=line-too-long
 DS_DEFAULT_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvc3dhbGRvam9sZiIsImF1dGgiOlt7ImF1dGhvcml0eSI6ImF1ZGl0LmMifSx7ImF1dGhvcml0eSI6ImF1ZGl0LmQifSx7ImF1dGhvcml0eSI6ImF1ZGl0LnIifSx7ImF1dGhvcml0eSI6ImF1ZGl0LnUifSx7ImF1dGhvcml0eSI6ImJkYy1zZXJ2aWNlLnJlYWQifSx7ImF1dGhvcml0eSI6ImNoYW5nZS5wYXNzd29yZCJ9XSwicHJvZmlsZVJvbGUiOiJTWVNURU0iLCJpYXQiOjE2MTcxOTExMDQsImV4cCI6MTYxODA1NTEwNH0.VDcw4LBxhsTKV1EMgY5qTYVbN30mLrHlFjQvFgcI9GU"
 
 # param list
@@ -49,12 +48,12 @@ DLST_PARAM = ["iepv", "ptu", "wind"]
 DLST_DEFAULT_PARAM = [DLST_PARAM[0]]
 
 # URL
-DS_URL_INS = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}"
-DS_URL_OBS = DS_SITE + "bdc/search{}/observationdate?icaocodes={}&begindate={}&enddate={}"
-DS_URL_LOC = DS_SITE + "bdc/locations"
+DS_URL_DATE = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}"
+DS_URL_ICAO = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}&icaocodes={}"
+DS_URL_LOCT = DS_SITE + "bdc/locations"
 
 # mongo db
-DS_DB_ADDR = os.getenv("DS_MONGO_ADDR", "localhost")
-DI_DB_PORT = int(os.environ["DI_MONGO_PORT"])
+DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")
+DI_DB_PORT = int(os.getenv("DI_MONGO_PORT"))
 
 # < the end >----------------------------------------------------------------------------------
