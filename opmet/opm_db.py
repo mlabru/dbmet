@@ -49,17 +49,19 @@ def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
     l_banco_dados_opmet = l_conexao_mongo.opmet
     assert l_banco_dados_opmet
 
-    # observação meteorológica de estações extras ?
-    if "iepv" == fs_param and fv_xtra:
-        # observação meteorologica
-        l_collection = l_banco_dados_opmet.observacaoMeteorologicaNovas
-        assert l_collection
+    # observação meteorológica ?
+    if "iepv" == fs_param:
+        # somente estações extras ?
+        if fv_xtra:
+            # observação meteorologica de estações extras
+            l_collection = l_banco_dados_opmet.observacaoMeteorologicaNovas
+            assert l_collection
 
-    # observação meteorológica de estações FAB ?
-    elif "iepv" == fs_param:
-        # observação meteorologica
-        l_collection = l_banco_dados_opmet.observacaoMeteorologica
-        assert l_collection
+        # senão,...
+        else:
+            # observação meteorologica de estações FAB
+            l_collection = l_banco_dados_opmet.observacaoMeteorologica
+            assert l_collection
 
     # altitude ? 
     elif "ptu" == fs_param:
@@ -67,11 +69,17 @@ def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
         l_collection = l_banco_dados_opmet.ptu
         assert l_collection
 
+        # logger
+        M_LOG.debug("flst_data (PTU): %s", str(flst_data))
+
     # wind ?
     elif "wind" == fs_param:
         # Wind
         l_collection = l_banco_dados_opmet.wind
         assert l_collection
+
+        # logger
+        M_LOG.debug("flst_data (WIND): %s", str(flst_data))
 
     # senão,...
     else:

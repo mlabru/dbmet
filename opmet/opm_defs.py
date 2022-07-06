@@ -18,7 +18,7 @@ import dotenv
 # take environment variables from .env
 dotenv.load_dotenv()
 
-# < defines >--------------------------------------------------------------------------------------
+# < defines >----------------------------------------------------------------------------------
 
 # logging level
 DI_LOG_LEVEL = logging.WARNING
@@ -44,8 +44,9 @@ DDCT_HEADER_AUTH = {
 DS_DEFAULT_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvc3dhbGRvam9sZiIsImF1dGgiOlt7ImF1dGhvcml0eSI6ImF1ZGl0LmMifSx7ImF1dGhvcml0eSI6ImF1ZGl0LmQifSx7ImF1dGhvcml0eSI6ImF1ZGl0LnIifSx7ImF1dGhvcml0eSI6ImF1ZGl0LnUifSx7ImF1dGhvcml0eSI6ImJkYy1zZXJ2aWNlLnJlYWQifSx7ImF1dGhvcml0eSI6ImNoYW5nZS5wYXNzd29yZCJ9XSwicHJvZmlsZVJvbGUiOiJTWVNURU0iLCJpYXQiOjE2MTcxOTExMDQsImV4cCI6MTYxODA1NTEwNH0.VDcw4LBxhsTKV1EMgY5qTYVbN30mLrHlFjQvFgcI9GU"
 
 # param list
-DLST_PARAM = ["iepv", "ptu", "wind"]
-DLST_DEFAULT_PARAM = [DLST_PARAM[0]]
+DS_IEPV = "iepv"
+DLST_PARAM = [DS_IEPV, "ptu", "wind"]
+DLST_DEFAULT_PARAM = [DS_IEPV]
 
 # URL
 DS_URL_DATE = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}"

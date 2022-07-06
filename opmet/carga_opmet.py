@@ -2,6 +2,7 @@
 """
 carga_opmet
 
+2022.jul  mlabru   ptu & wind só para estações da FAB (erro na API do OPMet) 
 2022.jun  mlabru   tabela de localidades
 2021.may  oswaldo  location
 2021.apr  oswaldo  data extraction type selector, empty lists, counter window
@@ -113,15 +114,15 @@ def get_data_type(f_args):
     # extraction type
     ls_type = str(f_args.type).lower()
 
-    # valid ?
-    if ls_type in df.DLST_PARAM:
-        # return list with data type
-        return [ls_type]
-
     # default ?
     if "x" == ls_type:
         # return ok
         return df.DLST_PARAM
+
+    # valid ?
+    if ls_type in df.DLST_PARAM:
+        # return list with data type
+        return [ls_type]
 
     # logger
     M_LOG.error("error in data type: %s. Assuming defaults.", str(ls_type))
@@ -221,7 +222,7 @@ def get_ext_stations(fdct_header: dict) -> str:
         # logger
         M_LOG.warning("request: %s", str(fs_url))
 
-    # return
+    # return list as string
     return ",".join(llst_xtra)
 
 # ---------------------------------------------------------------------------------------------
@@ -265,7 +266,7 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=Fals
             db.save_data(fs_param, llst_data["bdc"], fv_xtra)
 
             # logger
-            M_LOG.warning("número de registros carregados: %d", len(llst_data["bdc"]))
+            M_LOG.warning("número de registros carregados: %d\n", len(llst_data["bdc"]))
             # cai fora
             return
 
@@ -286,9 +287,9 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=Fals
         # senão,...
         else:
             # logger
-            M_LOG.warning("request: %s", str(fs_url))
-            # logger
             M_LOG.warning("an unknow error %d has occurred in request.", l_response.status_code)
+            # logger
+            M_LOG.warning("request: %s", str(fs_url))
 
         # increment counter
         li_counter += 1
@@ -309,7 +310,7 @@ def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param:
         # build URL (target station)
         ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, ls_code)
         # logger
-        M_LOG.debug("somente a estação %s", ls_code)
+        M_LOG.warning("somente a estação %s", ls_code)
 
     # senão,...
     else:
@@ -318,15 +319,22 @@ def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param:
             # build URL (by date, FAB stations)
             ls_url = df.DS_URL_DATE.format(fs_param, fs_date_ini, fs_date_fnl)
             # logger
-            M_LOG.warning("all FAB stations...")
+            M_LOG.warning("load FAB stations...")
 
             # search and save parameter
             load_param(fdct_header, ls_url, fs_param)
 
+        # ptu ou wind ?
+        if df.DS_IEPV != fs_param:
+            # logger
+            M_LOG.warning("extras: ptu e wind só para estações FAB.")
+            # ptu e wind só para estações FAB (bug na API do OPMet)
+            return
+            
         # build URL (by date, extra stations)
         ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, fs_xtras)
         # logger
-        M_LOG.warning("only xtra stations (%s)...", fs_xtras)
+        M_LOG.warning("load xtra stations (%s)...", fs_xtras)
 
     # search and save parameter
     load_param(fdct_header, ls_url, fs_param, f_args.xtra)
@@ -354,20 +362,17 @@ def main():
 
     # date range
     ldt_ini, li_delta = get_date_range(l_args)
-    M_LOG.debug("ldt_ini: %s  li_delta: %d", ldt_ini, li_delta)
 
     # for all dates...
     for _ in range(li_delta):
         # convert initial date
         ls_date_ini = ldt_ini.strftime(DS_DATE_FORMAT)
-        M_LOG.debug("ls_date_ini: %s", ls_date_ini)
 
         # delta
         ldt_fnl = ldt_ini + datetime.timedelta(minutes=59)
 
         # convert final date
         ls_date_fnl = ldt_fnl.strftime(DS_DATE_FORMAT)
-        M_LOG.debug("ls_date_fnl: %s", ls_date_fnl)
 
         # save new initial
         ldt_ini = ldt_ini + datetime.timedelta(hours=1)
@@ -375,6 +380,7 @@ def main():
         # for all params...
         for ls_param in llst_type:
             # logger
+            M_LOG.warning("\n")
             M_LOG.warning("running for param: %s from %s to %s.", ls_param, ls_date_ini, ls_date_fnl)
             # get and load param to mongoDB
             trata_param(ldct_header, ls_date_ini, ls_date_fnl, ls_param, ls_xtras, l_args)
@@ -384,15 +390,23 @@ def main():
 
 if "__main__" == __name__:
     # logger
-    logging.basicConfig(level=df.DI_LOG_LEVEL)
+    logging.basicConfig(datefmt="%Y/%m/%d %H:%M",
+                        format="%(asctime)s %(message)s",
+                        level=df.DI_LOG_LEVEL)
 
     # disable logging
     # logging.disable(sys.maxsize)
 
-    # run application
-    main()
-
-    # exit ok
+    try:
+        # run application
+        main()
+                                                 
+    # em caso de erro...
+    except KeyboardInterrupt:
+        # logger
+        logging.warning("Interrupted.")
+    
+    # terminate
     sys.exit(0)
-
+                                                      
 # < the end >----------------------------------------------------------------------------------
