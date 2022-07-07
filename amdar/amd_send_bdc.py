@@ -2,34 +2,19 @@
 """
 amd_send_bdc
 
-2022.apr  1.0  mlabru  initial version (Linux/Python)
+2022.apr  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
 # python library
 import logging
-import os
 import typing
-
-# dotenv
-import dotenv
 
 # postgres
 import psycopg2
 
 # local
 import amdar.amd_defs as df
-
-# < environment >------------------------------------------------------------------------------
-
-# take environment variables from .env
-dotenv.load_dotenv()
-
-# DB connection
-DS_HOST = os.getenv("DS_HOST")
-DS_USER = os.getenv("DS_USER")
-DS_PASS = os.getenv("DS_PASS")
-DS_DB = os.getenv("DS_DB")
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -38,10 +23,10 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def bdc_connect(fs_user: typing.Optional[str] = DS_USER,
-                fs_pass: typing.Optional[str] = DS_PASS,
-                fs_host: typing.Optional[str] = DS_HOST,
-                fs_db: typing.Optional[str] = DS_DB):
+def bdc_connect(fs_user: typing.Optional[str] = df.DS_USER,
+                fs_pass: typing.Optional[str] = df.DS_PASS,
+                fs_host: typing.Optional[str] = df.DS_HOST,
+                fs_db: typing.Optional[str] = df.DS_DB):
     """
     connect to BDC.
 

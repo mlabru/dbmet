@@ -2,38 +2,20 @@
 """
 amd_data_redemet
 
-2022.apr  1.0  mlabru   initial version (Linux/Python)
+2022.apr  mlabru   initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
 # python library
 import json
 import logging
-import os
 import typing
-
-# dotenv
-import dotenv
 
 # requests
 import requests
 
 # local
 import amdar.amd_defs as df
-
-# < environment >------------------------------------------------------------------------------
-
-# take environment variables from .env
-dotenv.load_dotenv()
-
-# REDEME API Key
-DS_REDEMET_KEY = os.getenv("DS_REDEMET_KEY")
-
-# < defines >----------------------------------------------------------------------------------
-
-# REDEMET
-DS_REDEMET_URL = ("https://api-redemet.decea.mil.br/produtos/amdar"
-                  "?api_key={0}&data_ini={1}&data={2}")
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -59,7 +41,7 @@ def redemet_get_amdar(fs_date_ini: str, fs_date_fin: str) -> typing.Any:
     assert fs_date_fin
 
     # request de dados de informações do AMDAR
-    l_response = requests.get(DS_REDEMET_URL.format(DS_REDEMET_KEY, fs_date_ini, fs_date_fin))
+    l_response = requests.get(df.DS_REDEMET_URL.format(df.DS_REDEMET_KEY, fs_date_ini, fs_date_fin))
 
     # ok ?
     if 200 != l_response.status_code:

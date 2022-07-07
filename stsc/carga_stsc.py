@@ -2,7 +2,7 @@
 """
 carga_stsc
 
-2022.apr  1.0  mlabru  initial version (Linux/Python)
+2022.apr  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
@@ -140,12 +140,23 @@ def main():
 
 if "__main__" == __name__:
     # logger
-    logging.basicConfig(level=df.DI_LOG_LEVEL)
+    logging.basicConfig(datefmt="%Y/%m/%d %H:%M",
+                        format="%(asctime)s %(message)s",
+                        level=df.DI_LOG_LEVEL)
 
     # disable logging
     # logging.disable(sys.maxsize)
 
-    # run application
-    sys.exit(main())
+    try:
+        # run application
+        main()
+                          
+    # em caso de erro...
+    except KeyboardInterrupt:
+        # logger
+        logging.warning("Interrupted.")
+    
+    # terminate
+    sys.exit(0)
 
 # < the end >----------------------------------------------------------------------------------
