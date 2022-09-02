@@ -18,6 +18,13 @@ import dotenv
 # take environment variables from .env
 dotenv.load_dotenv()
 
+# mongo db
+DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")
+DI_DB_PORT = int(os.getenv("DI_MONGO_PORT"))
+
+# payload for token
+DS_PAYLOAD_AUTH = os.getenv("DS_PAYLOAD_AUTH")
+
 # < defines >----------------------------------------------------------------------------------
 
 # logging level
@@ -31,9 +38,6 @@ DS_SITE = "https://opmet.decea.mil.br/"
 
 # URL for token
 DS_URL_AUTH = DS_SITE + "adm/login"
-
-# payload for token
-DS_PAYLOAD_AUTH = os.getenv("DS_PAYLOAD_AUTH")
 
 # request header for token
 DDCT_HEADER_AUTH = {
@@ -52,9 +56,5 @@ DLST_DEFAULT_PARAM = [DS_IEPV]
 DS_URL_DATE = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}"
 DS_URL_ICAO = DS_SITE + "bdc/search{}/observationdate?begindate={}&enddate={}&icaocodes={}"
 DS_URL_LOCT = DS_SITE + "bdc/locations"
-
-# mongo db
-DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")
-DI_DB_PORT = int(os.getenv("DI_MONGO_PORT"))
 
 # < the end >----------------------------------------------------------------------------------

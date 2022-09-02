@@ -2,33 +2,18 @@
 """
 stsc_send_bdc
 
-2022.apr  1.0  mlabru  initial version (Linux/Python)
+2022.apr  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
 # python library
 import logging
-import os
-
-# dotenv
-import dotenv
 
 # postgres
 import psycopg2
 
 # local
 import stsc.stsc_defs as df
-
-# < environment >------------------------------------------------------------------------------
-
-# take environment variables from .env
-dotenv.load_dotenv()
-
-# DB connection
-DS_HOST = os.getenv("DS_HOST")
-DS_USER = os.getenv("DS_USER")
-DS_PASS = os.getenv("DS_PASS")
-DS_DB = os.getenv("DS_DB")
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -37,7 +22,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def bdc_connect(fs_user=DS_USER, fs_pass=DS_PASS, fs_host=DS_HOST, fs_db=DS_DB):
+def bdc_connect(fs_user=df.DS_USER, fs_pass=df.DS_PASS, fs_host=df.DS_HOST, fs_db=df.DS_DB):
     """
     connect to BDC
     """

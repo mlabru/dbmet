@@ -2,7 +2,7 @@
 """
 utl_dates
 
-2022.apr  1.0  mlabru  initial version (Linux/Python)
+2022.apr  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 

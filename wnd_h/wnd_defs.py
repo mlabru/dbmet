@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-inm_defs
+wnd_defs
 
-2021.may  mlabru  initial version (Linux/Python)
+2022.jun  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
@@ -18,18 +18,22 @@ import dotenv
 # take environment variables from .env
 dotenv.load_dotenv()
 
-# DB connection
-DS_HOST = os.getenv("DS_HOST")
-DS_USER = os.getenv("DS_USER")
-DS_PASS = os.getenv("DS_PASS")
-DS_DB = os.getenv("DS_DB")
-
-# < defines >----------------------------------------------------------------------------------
+# < constants >--------------------------------------------------------------------------------
 
 # logging level
 DI_LOG_LEVEL = logging.WARNING
 
-# UTC is ahead of us
-DI_DIFF_UTC = 3
+# mongo db
+DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")
+DI_DB_PORT = int(os.getenv("DI_MONGO_PORT"))
+
+# lista de localidades
+DLST_SITES = ["SBAF", "SBES", "SBGR", "SBGW",
+              "SBJD", "SBJR", "SBKP", "SBMT",
+              "SBRJ", "SBSC", "SBSJ", "SBSP",
+              "SBST", "SBTA", ]
+
+# diretório de dados
+DS_DATA_DIR = "./data/SRPV-SP"
 
 # < the end >----------------------------------------------------------------------------------

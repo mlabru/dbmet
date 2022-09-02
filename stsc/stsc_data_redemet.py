@@ -2,36 +2,19 @@
 """
 stsc_data_redemet
 
-2022.apr  1.0  mlabru   initial version (Linux/Python)
+2022.apr  mlabru   initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
 # python library
 import json
 import logging
-import os
-
-# dotenv
-import dotenv
 
 # requests
 import requests
 
 # local
 import stsc.stsc_defs as df
-
-# < environment >------------------------------------------------------------------------------
-
-# take environment variables from .env
-dotenv.load_dotenv()
-
-# REDEME API Key
-DS_REDEMET_KEY = os.getenv("DS_REDEMET_KEY")
-
-# < defines >----------------------------------------------------------------------------------
-
-# REDEMET
-DS_REDEMET_URL = "https://api-redemet.decea.mil.br/produtos/stsc?api_key={0}&data={1}&anima=60"
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -49,7 +32,7 @@ def redemet_get_stsc(fs_date):
     :returns: STSC data if found else None
     """
     # request de dados de tempo severo
-    l_response = requests.get(DS_REDEMET_URL.format(DS_REDEMET_KEY, fs_date))
+    l_response = requests.get(df.DS_REDEMET_URL.format(df.DS_REDEMET_KEY, fs_date))
 
     # ok ?
     if 200 != l_response.status_code:
