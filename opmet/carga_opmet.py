@@ -42,7 +42,7 @@ M_LOG.setLevel(df.DI_LOG_LEVEL)
 def arg_parse():
     """
     parse command line arguments
-    arguments parse: -i <initial date> -f <final date> -c <ICAO code> -t <data type>
+    arguments parse: -i <initial date> -f <final date> -c <ICAO code> -t <data type> -x <flag>
 
     :returns: parsed arguments
     """
@@ -368,13 +368,13 @@ def main():
         # convert initial date
         ls_date_ini = ldt_ini.strftime(DS_DATE_FORMAT)
 
-        # delta
+        # delta time
         ldt_fnl = ldt_ini + datetime.timedelta(minutes=59)
 
         # convert final date
         ls_date_fnl = ldt_fnl.strftime(DS_DATE_FORMAT)
 
-        # save new initial
+        # save new initial date
         ldt_ini = ldt_ini + datetime.timedelta(hours=1)
 
         # for all params...

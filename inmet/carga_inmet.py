@@ -16,7 +16,7 @@ import sys
 import requests
 
 # local
-import inmet.inm_bdc as db
+import inmet.inm_dw as db
 import inmet.inm_defs as df
 
 # < defines >----------------------------------------------------------------------------------
@@ -91,9 +91,9 @@ def main():
     """
     main
     """
-    # connect BDC
-    l_bdc = db.connect_bdc()
-    assert l_bdc
+    # connect DW
+    l_dw = db.connect_dw()
+    assert l_dw
 
     # stations altitudes
     ldct_stations_alt = get_stations_altitudes()
@@ -138,11 +138,11 @@ def main():
             # next
             continue
 
-        # write data to BDC
-        db.send_to_bdc(l_bdc, ldct_dado, ldct_stations_alt)
+        # write data to DW
+        db.send_to_dw(l_dw, ldct_dado, ldct_stations_alt)
 
-    # close BDC
-    l_bdc.close()
+    # close DW
+    l_dw.close()
 
 # ---------------------------------------------------------------------------------------------
 # this is the bootstrap process

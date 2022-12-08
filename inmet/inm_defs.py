@@ -19,10 +19,10 @@ import dotenv
 dotenv.load_dotenv()
 
 # DB connection
-DS_HOST = os.getenv("DS_HOST")
-DS_USER = os.getenv("DS_USER")
-DS_PASS = os.getenv("DS_PASS")
-DS_DB = os.getenv("DS_DB")
+DS_DW_HOST = os.getenv("DS_DW_HOST")
+DS_DW_USER = os.getenv("DS_DW_USER")
+DS_DW_PASS = os.getenv("DS_DW_PASS")
+DS_DW_DB = os.getenv("DS_DW_DB")
 
 # < defines >----------------------------------------------------------------------------------
 
