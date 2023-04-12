@@ -13,7 +13,7 @@ import logging
 import pymongo
 
 # local
-import mfas_defs as df  
+import mfas.mfas_defs as df  
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -50,13 +50,13 @@ def mongo_connect():
     return l_mongo_client
 
 # ---------------------------------------------------------------------------------------------
-def save_data(f_mongo_client, fs_loc: str, fdct_data: dict):
+def save_data(f_mongo_client, fdct_data: dict, fs_loc: str = "SBGR"):
     """
     save data
 
     :param f_mongo_client: MongoDB client connection
-    :param fs_loc (str): kind
     :param fdct_data (dict): data to be saved 
+    :param fs_loc (str): localidade (default: SBGR)
     """
     # logger
     M_LOG.info(">> save_data")

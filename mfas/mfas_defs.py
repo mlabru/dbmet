@@ -21,11 +21,16 @@ dotenv.load_dotenv()
 # < constants >--------------------------------------------------------------------------------
 
 # logging level
-DI_LOG_LEVEL = logging.DEBUG
+DI_LOG_LEVEL = logging.WARNING
 
 # mongo db
 DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")
 DI_DB_PORT = int(os.getenv("DI_MONGO_PORT"))
+
+# site DECEA
+DS_SITE = "http://10.32.40.53/"
+DS_URL_DATE = DS_SITE + "api2/diagnostico/lista?dti={}&dtf={}&local={}"
+DS_URL_NOW = DS_SITE + "api2/diagnostico"
 
 # lista de localidades
 DLST_SITES = ["SBAF", "SBES", "SBGR", "SBGW",

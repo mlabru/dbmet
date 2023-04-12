@@ -23,7 +23,8 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(logging.DEBUG)
 
 # ---------------------------------------------------------------------------------------------
-def get_date_range(f_args, fi_delta: int, fs_format: str) -> tuple[datetime.datetime, int]:
+# [datetime.datetime, int]:
+def get_date_range(f_args, fi_delta: int, fs_format: str) -> tuple:
     """
     get initial and final dates
 
