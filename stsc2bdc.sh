@@ -19,7 +19,7 @@ if [ -d ${DBMET} ]; then
 fi
 
 # ckeck if another instance of loader is running
-DI_PID_LOADER=`ps ax | grep -w python3 | grep -w carga_stsc.py | awk '{ print $1 }'`
+DI_PID_LOADER=`ps ax | grep -w python3 | grep -w stsc2bdc.py | awk '{ print $1 }'`
 
 if [ ! -z "$DI_PID_LOADER" ]; then
     # log warning
@@ -34,6 +34,6 @@ fi
 export PYTHONPATH="$PWD/."
 
 # executa o loader
-python3 stsc/carga_stsc.py $@ > logs/carga_stsc.$HOST.$TDATE.log 2>&1 &
+python3 stsc/stsc2bdc.py $@ > logs/stsc2bdc.$HOST.$TDATE.log 2>&1 &
 
 # < the end >----------------------------------------------------------------------------------

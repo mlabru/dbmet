@@ -31,7 +31,7 @@ def bdc_connect(fs_user=df.DS_USER, fs_pass=df.DS_PASS, fs_host=df.DS_HOST, fs_d
 
     # create connection
     l_bdc = psycopg2.connect(host=fs_host, database=fs_db, user=fs_user, password=fs_pass)
-    assert l_bdc
+    assert l_bdc is not None
 
     # return
     return l_bdc

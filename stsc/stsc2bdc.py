@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-carga_stsc
+stsc2bdc
 
 2022.apr  mlabru  initial version (Linux/Python)
 """
