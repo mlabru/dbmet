@@ -76,12 +76,12 @@ def save_data(f_mongo_client, fs_date: str, flst_stsc: list):
     assert l_banco_dados_stsc is not None
 
     # collection
-    l_collection = l_banco_dados_stsc[fs_date]
+    l_collection = l_banco_dados_stsc["stsc"]
     assert l_collection is not None
 
     try:
         # insert dictionary
-        l_collection.insert_one({"stsc": flst_stsc})
+        l_collection.insert_one({"datahora": fs_date, "eventos": flst_stsc})
 
     # em caso de erro,...
     except Exception as l_err:
