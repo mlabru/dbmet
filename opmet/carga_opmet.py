@@ -2,6 +2,7 @@
 """
 carga_opmet
 
+2025.feb  mlabru   obter dados do mês anterior
 2022.jul  mlabru   ptu & wind só para estações da FAB (erro na API do OPMet) 
 2022.jun  mlabru   tabela de localidades
 2021.may  oswaldo  location
@@ -10,7 +11,7 @@ carga_opmet
 2021.apr  oswaldo  generate authorization token
 2021.apr  oswaldo  initial version (Linux/Python)
 """
-# < imports >----------------------------------------------------------------------------------
+# < imports >--------------------------------------------------------------------------
 
 # python library
 import argparse
@@ -26,19 +27,21 @@ import requests
 # local
 import opmet.opm_db as db
 import opmet.opm_defs as df
+import opmet.opm_fncs as fn
+
 import utils.utl_dates as ud
 
-# < defines >----------------------------------------------------------------------------------
+# < defines >--------------------------------------------------------------------------
 
 # date format
 DS_DATE_FORMAT = "%Y-%m-%dT%H:%M"
 
-# < logging >----------------------------------------------------------------------------------
+# < logging >--------------------------------------------------------------------------
 
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
-# ---------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 def arg_parse():
     """
     parse command line arguments
@@ -53,6 +56,8 @@ def arg_parse():
     # args
     l_parser.add_argument("-c", "--code", dest="code", action="store", default="x",
                           help="ICAO code.")
+    l_parser.add_argument("-d", "--days", dest="days", action="store", default=0,
+                          help="Previous days.")
     l_parser.add_argument("-i", "--dini", dest="dini", action="store", default="x",
                           help="Initial date.")
     l_parser.add_argument("-f", "--dfnl", dest="dfnl", action="store", default="x",
@@ -66,182 +71,66 @@ def arg_parse():
     # return arguments
     return l_parser.parse_args()
 
-# ---------------------------------------------------------------------------------------------
-def get_auth_token():
+# -------------------------------------------------------------------------------------
+def build_url(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param: str, fs_xtras: str, f_args):
     """
-    generate token
-
-    :returns: string token
+    build URL for search parameters and load
     """
-    # try make request
-    try:
-        # get auth token
-        l_response = requests.request("POST",
-                                      df.DS_URL_AUTH,
-                                      headers=df.DDCT_HEADER_AUTH,
-                                      data=df.DS_PAYLOAD_AUTH,
-                                      verify=False)
+    # search target ICAO code ?
+    if "x" != f_args.code:
+        # ICAO code
+        ls_code = str(f_args.code).upper()[:4]
 
-    # em caso de erro...
-    except requests.exceptions.RequestException as l_err:
+        # build URL (target station)
+        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, ls_code)
         # logger
-        M_LOG.error("error in auth token request: %s.", str(l_err))
-
-    # ok ?
-    if 200 == l_response.status_code:
-        # return token
-        return l_response.text
+        M_LOG.warning("somente a estação %s", ls_code)
 
     # senão,...
     else:
+        # não só as extras ?
+        if not f_args.xtra:
+            # build URL (by date, FAB stations)
+            ls_url = df.DS_URL_DATE.format(fs_param, fs_date_ini, fs_date_fnl)
+            # logger
+            M_LOG.warning("load FAB stations...")
+
+            # search and save parameter
+            load_data(fdct_header, ls_url, fs_param, f_args)
+
+        # ptu ou wind ?
+        if df.DS_IEPV != fs_param:
+            # logger
+            M_LOG.warning("extras: ptu e wind só para estações FAB.")
+            # ptu e wind só para estações FAB (bug na API do OPMet)
+            return
+            
+        # build URL (by date, extra stations)
+        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, fs_xtras)
         # logger
-        M_LOG.warning("error %d. No auth token.", l_response.status_code)
-        # logger
-        M_LOG.warning("request: %s", str(fs_url))
+        M_LOG.warning("load xtra stations (%s)...", fs_xtras)
 
-    # returns a mimic token
-    return df.DS_DEFAULT_TOKEN
+    # search and save parameter
+    load_data(fdct_header, ls_url, fs_param, f_args)
 
-# ---------------------------------------------------------------------------------------------
-def get_data_type(f_args):
-    """
-    get extraction data types
-
-    :param f_args: received arguments
-
-    :returns: list with data type
-    """
-    # extraction type
-    ls_type = str(f_args.type).lower()
-
-    # default ?
-    if "x" == ls_type:
-        # return ok
-        return df.DLST_PARAM
-
-    # valid ?
-    if ls_type in df.DLST_PARAM:
-        # return list with data type
-        return [ls_type]
-
-    # logger
-    M_LOG.error("error in data type: %s. Assuming defaults.", str(ls_type))
-
-    # return default
-    return df.DLST_DEFAULT_PARAM
-
-# ---------------------------------------------------------------------------------------------
-def get_date_range(f_args):
-    """
-    get initial and final dates
-
-    :param f_args: received arguments
-
-    :returns: initial date and delta in hours
-    """
-    # delta
-    li_delta = 1
-
-    # no date at all ?
-    if ("x" == f_args.dini) and ("x" == f_args.dfnl):
-        # get 1 day before
-        ldt_day_minus_1 = datetime.datetime.now() - datetime.timedelta(days=1)
-
-        # build initial date
-        ldt_ini = ldt_day_minus_1.replace(minute=0)
-
-    # just initial date ?
-    elif ("x" != f_args.dini) and ("x" == f_args.dfnl):
-        # parse initial date
-        ldt_ini = ud.parse_date(f_args.dini, DS_DATE_FORMAT)
-
-    # just final date ?
-    elif ("x" == f_args.dini) and ("x" != f_args.dfnl):
-        # parse final date
-        ldt_fnl = ud.parse_date(f_args.dfnl, DS_DATE_FORMAT)
-
-        # delta
-        ldt_ini = ldt_fnl - datetime.timedelta(minutes=59)
-
-    # so, both dates
-    else:
-        # parse initial date
-        ldt_ini = ud.parse_date(f_args.dini, DS_DATE_FORMAT)
-
-        # parse final date
-        ldt_fnl = ud.parse_date(f_args.dfnl, DS_DATE_FORMAT)
-
-        # calculate difference
-        li_delta = ldt_fnl - ldt_ini
-        li_delta = int(li_delta.total_seconds() / 3600)
-
-    # return initial date and delta in hours
-    return ldt_ini, li_delta
-
-# ---------------------------------------------------------------------------------------------
-def get_ext_stations(fdct_header: dict) -> str:
-    """
-    get extra stations (besides FAB)
-
-    :returns: comma separated list of extra stations
-    """
-    # request payload
-    ldct_payload: dict = {}
-
-    # stations list
-    llst_xtra = []
-
-    # try make request
-    try:
-        # make request locations
-        l_response = requests.request("GET", df.DS_URL_LOCT,
-                                      headers=fdct_header,
-                                      data=ldct_payload,
-                                      verify=False)
-
-    # em caso de erro...
-    except requests.exceptions.RequestException as l_err:
-        # logger
-        M_LOG.error("error in location codes request: %s", str(l_err))
-
-    # ok ?
-    if 200 == l_response.status_code:
-        # response data
-        ldct_data = json.loads(l_response.text)
-
-        # stations list
-        llst_data = ldct_data.get("locationCodes", [])
-
-        # clean up list
-        llst_xtra = [lxt for lxt in llst_data if lxt[:2] not in ["EE", "SB", "TE", "XX"]]
-
-    # senão, ok...
-    else:
-        # logger
-        M_LOG.warning("error %d. Location codes not found.", l_response.status_code)
-        # logger
-        M_LOG.warning("request: %s", str(fs_url))
-
-    # return list as string
-    return ",".join(llst_xtra)
-
-# ---------------------------------------------------------------------------------------------
-def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=False):
+# -------------------------------------------------------------------------------------
+def load_data(fdct_header: dict, fs_url: str, fs_param: str, f_args):
     """
     get param from OpMet and save to mongoDB
 
     :param fdct_header (dict): request header
     :param fs_url (str): request URL
     :param fs_param (str): parameter to search and save
+    :param f_args (args): command line arguments
     """
     # request payload
     ldct_payload: dict = {}
 
     # init counter
-    li_counter = 0
+    li_counter = 1
 
     # keep trying for while...
-    while li_counter < (60 / df.DI_RETRY):
+    while li_counter < 10:
         # try make request
         try:
             # make request
@@ -249,11 +138,21 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=Fals
                                           headers=fdct_header,
                                           data=ldct_payload,
                                           verify=False)
+
         # em caso de erro...
         except requests.exceptions.RequestException as l_err:
             # logger
             M_LOG.error("error in data request: %s", str(l_err))
 
+            # increment counter
+            li_counter += 1
+
+            # wait (seconds)
+            time.sleep(df.DI_RETRY * 60)
+
+            # next try
+            continue
+             
         # ok ?
         if 200 == l_response.status_code:
             # load data
@@ -263,7 +162,7 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=Fals
             M_LOG.warning("ok. Sending to DB...")
 
             # save data to mongoDB
-            db.save_data(fs_param, llst_data["bdc"], fv_xtra)
+            db.save_data(fs_param, llst_data["bdc"], f_args)
 
             # logger
             M_LOG.warning("número de registros carregados: %d\n", len(llst_data["bdc"]))
@@ -294,52 +193,10 @@ def load_param(fdct_header: dict, fs_url: str, fs_param: str, fv_xtra: bool=Fals
         # increment counter
         li_counter += 1
 
-        # wait (minutes)
+        # wait (seconds)
         time.sleep(df.DI_RETRY * 60)
 
-# ---------------------------------------------------------------------------------------------
-def trata_param(fdct_header: dict, fs_date_ini: str, fs_date_fnl: str, fs_param: str, fs_xtras: str, f_args):
-    """
-    build URL for search parameters and load
-    """
-    # search target ICAO code ?
-    if "x" != f_args.code:
-        # ICAO code
-        ls_code = str(f_args.code).upper()[:4]
-
-        # build URL (target station)
-        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, ls_code)
-        # logger
-        M_LOG.warning("somente a estação %s", ls_code)
-
-    # senão,...
-    else:
-        # não só as extras ?
-        if not f_args.xtra:
-            # build URL (by date, FAB stations)
-            ls_url = df.DS_URL_DATE.format(fs_param, fs_date_ini, fs_date_fnl)
-            # logger
-            M_LOG.warning("load FAB stations...")
-
-            # search and save parameter
-            load_param(fdct_header, ls_url, fs_param)
-
-        # ptu ou wind ?
-        if df.DS_IEPV != fs_param:
-            # logger
-            M_LOG.warning("extras: ptu e wind só para estações FAB.")
-            # ptu e wind só para estações FAB (bug na API do OPMet)
-            return
-            
-        # build URL (by date, extra stations)
-        ls_url = df.DS_URL_ICAO.format(fs_param, fs_date_ini, fs_date_fnl, fs_xtras)
-        # logger
-        M_LOG.warning("load xtra stations (%s)...", fs_xtras)
-
-    # search and save parameter
-    load_param(fdct_header, ls_url, fs_param, f_args.xtra)
-
-# ---------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 def main():
     """
     drive app
@@ -348,20 +205,20 @@ def main():
     l_args = arg_parse()
 
     # create header with auth token
-    ldct_header = json.loads(get_auth_token())
+    ldct_header = json.loads(fn.get_auth_token())
 
     # list of extra stations
-    ls_xtras = get_ext_stations(ldct_header) if "x" == l_args.code else ""
+    ls_xtras = fn.get_ext_stations(ldct_header) if "x" == l_args.code else ""
    
     if "" == ls_xtras:
         # invalid station
         ls_xtras = "xxxx"
 
     # data type
-    llst_type = get_data_type(l_args)
+    llst_type = fn.get_data_type(l_args)
 
     # date range
-    ldt_ini, li_delta = get_date_range(l_args)
+    ldt_ini, li_delta = fn.get_date_range(l_args)
 
     # for all dates...
     for _ in range(li_delta):
@@ -383,19 +240,16 @@ def main():
             M_LOG.warning("\n")
             M_LOG.warning("running for param: %s from %s to %s.", ls_param, ls_date_ini, ls_date_fnl)
             # get and load param to mongoDB
-            trata_param(ldct_header, ls_date_ini, ls_date_fnl, ls_param, ls_xtras, l_args)
+            build_url(ldct_header, ls_date_ini, ls_date_fnl, ls_param, ls_xtras, l_args)
 
-# ---------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 # this is the bootstrap process
 
 if "__main__" == __name__:
+    # gera nome de log de erro
+    ls_error_log = logger_generate_filename("carga_opmet", ".log")
     # logger
-    logging.basicConfig(datefmt="%Y/%m/%d %H:%M",
-                        format="%(asctime)s %(message)s",
-                        level=df.DI_LOG_LEVEL)
-
-    # disable logging
-    # logging.disable(sys.maxsize)
+    logger_setup("carga_opmet.log", ls_error_log)
 
     try:
         # run application
@@ -409,4 +263,4 @@ if "__main__" == __name__:
     # terminate
     sys.exit(0)
                                                       
-# < the end >----------------------------------------------------------------------------------
+# < the end >--------------------------------------------------------------------------

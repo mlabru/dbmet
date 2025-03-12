@@ -79,8 +79,6 @@ def redemet_get_stsc():
     """
     request de dados de tempo severo
 
-    :param fs_date (str): date to search
-
     :returns: STSC data if found else None
     """
     # request de dados de tempo severo
@@ -100,7 +98,7 @@ def redemet_get_stsc():
     # em caso de erro...
     except json.decoder.JSONDecodeError as l_err:
         # logger
-        M_LOG.error("REDEMET STSC data decoding error for %s: %s.", fs_date, str(l_err))
+        M_LOG.error("REDEMET STSC data decoding error: %s.", str(l_err))
         # return error
         return None
 
@@ -109,7 +107,7 @@ def redemet_get_stsc():
 
     if lv_status is None or not lv_status:
         # logger
-        M_LOG.error("REDEMET STSC data status error for %s: %s", fs_date, str(ldct_stsc))
+        M_LOG.error("REDEMET STSC data status error: %s", str(ldct_stsc))
         # return error
         return None
 
@@ -118,7 +116,7 @@ def redemet_get_stsc():
 
     if not ldct_data:
         # logger
-        M_LOG.error("REDEMET STSC data have no data field for %s: %s", fs_date, str(ldct_stsc))
+        M_LOG.error("REDEMET STSC data have no data field: %s", str(ldct_stsc))
         # return error
         return None
 

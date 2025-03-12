@@ -19,13 +19,13 @@ if [ -d ${DBMET} ]; then
 fi
 
 # log file
-LOGF="logs/wnd_his.$HOST.$TDATE.log"
+LOGF="logs/rain_his.$HOST.$TDATE.log"
 
 # logger
 echo "Início de processamento: " $(date '+%Y-%m-%d %H:%M') > $LOGF
 
 # ckeck if another instance of loader is running
-DI_PID_LOADER=`ps ax | grep -w python3 | grep -w wnd_his.py | awk '{ print $1 }'`
+DI_PID_LOADER=`ps ax | grep -w python3 | grep -w rain_his.py | awk '{ print $1 }'`
 
 if [ ! -z "$DI_PID_LOADER" ]; then
     # log warning
@@ -39,7 +39,7 @@ fi
 # set PYTHONPATH
 export PYTHONPATH="$PWD/."
 # executa o loader
-python3 pptw/wnd_his.py $@ >> $LOGF 2>&1
+python3 pptw/rain_his.py $@ >> $LOGF 2>&1
 
 # logger
 echo "Fim de processamento: " $(date '+%Y-%m-%d %H:%M') >> $LOGF

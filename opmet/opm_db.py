@@ -4,7 +4,7 @@ opm_db
 
 2022.jun  mlabru  initial version (Linux/Python)
 """
-# < imports >----------------------------------------------------------------------------------
+# < imports >--------------------------------------------------------------------------
 
 # python library
 import logging
@@ -15,18 +15,19 @@ import pymongo
 # local
 import opmet.opm_defs as df  
 
-# < logging >----------------------------------------------------------------------------------
+# < logging >--------------------------------------------------------------------------
 
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
-# ---------------------------------------------------------------------------------------------
-def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
+# -------------------------------------------------------------------------------------
+def save_data(fs_param: str, flst_data: list, f_args):
     """
     save data
 
     :param fs_param (str): kind
     :param flst_data (list): data to be saved 
+    :param f_args (args): command line arguments
     """
     # logger
     M_LOG.info(">> save_data")
@@ -52,14 +53,20 @@ def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
     # observação meteorológica ?
     if "iepv" == fs_param:
         # somente estações extras ?
-        if fv_xtra:
-            # observação meteorologica de estações extras
+        if f_args.xtra:
+            # observação meteorológica de estações extras
             l_collection = l_banco_dados_opmet.observacaoMeteorologicaNovas
+            assert l_collection
+
+        # observação meteorológica de 30 dias ?
+        elif 30 == int(f_args.days):
+            # observação meteorológica de 30 dias
+            l_collection = l_banco_dados_opmet.observacaoMeteorologica30
             assert l_collection
 
         # senão,...
         else:
-            # observação meteorologica de estações FAB
+            # observação meteorológica de estações FAB
             l_collection = l_banco_dados_opmet.observacaoMeteorologica
             assert l_collection
 
@@ -102,4 +109,4 @@ def save_data(fs_param: str, flst_data: list, fv_xtra: bool):
         # logger
         M_LOG.error("timeout on connection to MongoDB: %s.", str(l_err))
     
-# < the end >----------------------------------------------------------------------------------
+# < the end >--------------------------------------------------------------------------

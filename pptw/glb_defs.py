@@ -21,7 +21,8 @@ dotenv.load_dotenv()
 # < constants >--------------------------------------------------------------------------------
 
 # logging level
-DI_LOG_LEVEL = logging.WARNING
+#@ DI_LOG_LEVEL = logging.WARNING
+DI_LOG_LEVEL = logging.DEBUG
 
 # mongo db
 DS_DB_ADDR = os.getenv("DS_MONGO_ADDR")

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-wnd_db
+mng_db
+mongoDB connection
 
 2022.jun  mlabru  initial version (Linux/Python)
 """
@@ -13,7 +14,7 @@ import logging
 import pymongo
 
 # local
-import wnd_h.wnd_defs as df  
+import pptw.glb_defs as df  
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -50,11 +51,11 @@ def mongo_connect():
     return l_mongo_client
 
 # ---------------------------------------------------------------------------------------------
-def save_data(f_mongo_client, fs_loc: str, fdct_data: dict):
+def save_data(f_banco_dados, fs_loc: str, fdct_data: dict):
     """
     save data
 
-    :param f_mongo_client: MongoDB client connection
+    :param f_banco_dados: banco de dados history
     :param fs_loc (str): kind
     :param fdct_data (dict): data to be saved 
     """
@@ -62,6 +63,7 @@ def save_data(f_mongo_client, fs_loc: str, fdct_data: dict):
     M_LOG.info(">> save_data")
 
     # check input
+    assert f_banco_dados
     assert fs_loc in df.DLST_SITES
 
     # have data ?
@@ -71,12 +73,8 @@ def save_data(f_mongo_client, fs_loc: str, fdct_data: dict):
         # return
         return
 
-    # banco de dados WIND history
-    l_banco_dados_wndhis = f_mongo_client["wndhis"]
-    assert l_banco_dados_wndhis
-
     # collection
-    l_collection = l_banco_dados_wndhis[fs_loc]
+    l_collection = f_banco_dados[fs_loc]
     assert l_collection
 
     try:

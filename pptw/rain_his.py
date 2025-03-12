@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-wind history
+precipitation (rain) history
 
-2022.sep  mlabru   initial version (Linux/Python)
+2023.sep  mlabru   initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ import sys
 import patoolib
 
 # local
-import wnd_h.wnd_db as db
-import wnd_h.wnd_defs as df
+import pptw.mng_db as db
+import pptw.glb_defs as df
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -50,13 +50,11 @@ def trata_dir(fs_dir: str):
     for lroot, ldirs, lfiles in os.walk(fs_dir, followlinks=False):
         # for all files...
         for lfile in lfiles:
-            # WIND* history file ?
-            if lfile.lower().startswith("wind") and lfile.lower().endswith(".his"):
-                # MPS file ?
-                if lfile.lower().startswith("wind_mps"):
-                    # despreza
-                    continue
-
+            # convert to lowercase
+            lflow = lfile.lower()
+            # PTU* history file ?
+            if lflow.endswith(".his") and lflow.startswith("rain"):
+                M_LOG.debug("ls_loc: %s lflow: %s", ls_loc, os.path.join(lroot, lflow))
                 # trata file
                 trata_file(ls_loc, os.path.join(lroot, lfile))
 
@@ -207,10 +205,10 @@ def trata_line(f_mongo_client, fs_loc: str, flst_head: list, flst_line: list):
 
     # create dict
     ldct_reg = dict(zip(flst_head, flst_line))
-    M_LOG.debug("loc: %s  registro: %s", fs_loc, str(ldct_reg))
+    # M_LOG.debug("loc: %s  registro: %s", fs_loc, str(ldct_reg))
 
-    # save collection on Mongo DB
-    db.save_data(f_mongo_client, fs_loc, ldct_reg)
+    # save collection on selected Mongo database
+    db.save_data(f_mongo_client["rainhis"], fs_loc, ldct_reg)
 
 # ---------------------------------------------------------------------------------------------
 def main():
@@ -230,6 +228,7 @@ def main():
             # not a compressed file ?
             if not (lfile.lower().endswith("7z") or
                     lfile.lower().endswith("rar") or \
+                    lfile.lower().endswith("tgz") or \
                     lfile.lower().endswith("zip")):
                 # next file
                 continue
@@ -258,10 +257,10 @@ def main():
 
             # salva o processo
             llst_prc.append(lprc)
-
+         
     # para todos os processos...
     for lprc in llst_prc:
-        # aguarda o término do processo
+        # aguarda o término dos processos
         lprc.join()
 
 # ---------------------------------------------------------------------------------------------
